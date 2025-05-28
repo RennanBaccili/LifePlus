@@ -30,6 +30,16 @@ public class Task extends AbstractEntity<Long> {
     @Nullable
     private LocalDate dueDate;
 
+    public Task() {
+        super();
+    }
+
+    public Task( String description, Instant creationDate, LocalDate dueDate) {
+        this.description = description;
+        this.creationDate = creationDate;
+        this.dueDate = dueDate;
+    }
+
     @Override
     public @Nullable Long getId() {
         return id;
