@@ -3,6 +3,7 @@ package org.dasher.speed.taskmanagement.ui.view;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -44,12 +45,19 @@ public class PersonInputView extends VerticalLayout {
     private final ComboBox<Role> role = new ComboBox<>("Role");
 
     {
+        firstName.setPrefixComponent(new Icon("vaadin", "user"));
         firstName.setPlaceholder("Enter first name");
+        lastName.setPrefixComponent(new Icon("vaadin", "user"));
         lastName.setPlaceholder("Enter last name");
+        phone.setPrefixComponent(new Icon("vaadin", "phone"));
         phone.setPlaceholder("Enter phone number");
+        cpf.setPrefixComponent(new Icon("vaadin", "id-card"));
         cpf.setPlaceholder("Enter CPF");
+        gender.setPrefixComponent(new Icon("vaadin", "venus-mars"));
         gender.setPlaceholder("Select gender");
+        maritalStatus.setPrefixComponent(new Icon("vaadin", "heart"));
         maritalStatus.setPlaceholder("Select marital status");
+        role.setPrefixComponent(new Icon("vaadin", "briefcase"));
         role.setPlaceholder("Select role");
     }
 
@@ -63,9 +71,13 @@ public class PersonInputView extends VerticalLayout {
     private final TextField digitalSignature = new TextField("Digital Signature");
 
     {
+        licenseNumber.setPrefixComponent(new Icon("vaadin", "file-text"));
         licenseNumber.setPlaceholder("Enter license number");
+        licenseState.setPrefixComponent(new Icon("vaadin", "map-marker"));
         licenseState.setPlaceholder("Enter license state");
+        medicalSpecialty.setPrefixComponent(new Icon("vaadin", "stethoscope"));
         medicalSpecialty.setPlaceholder("Enter medical specialty");
+        digitalSignature.setPrefixComponent(new Icon("vaadin", "signature"));
         digitalSignature.setPlaceholder("Enter digital signature");
     }
 
@@ -75,6 +87,7 @@ public class PersonInputView extends VerticalLayout {
     private final TextField healthPlan = new TextField("Health Plan");
 
     {
+        healthPlan.setPrefixComponent(new Icon("vaadin", "heartbeat"));
         healthPlan.setPlaceholder("Enter health plan");
     }
 
@@ -146,6 +159,7 @@ public class PersonInputView extends VerticalLayout {
     }
 
     private Component createPersonSection() {
+
         FormLayout personFormLayout = new FormLayout();
         
         personFormLayout.add(
@@ -300,7 +314,7 @@ public class PersonInputView extends VerticalLayout {
         } catch (ValidationException e) {
             Notification.show(e.getMessage(), 3000, Notification.Position.TOP_CENTER)
                 .addThemeVariants(NotificationVariant.LUMO_ERROR);
-            return false;
+return false;
         }
     }
 
