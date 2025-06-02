@@ -39,5 +39,4 @@ public class TaskService {
     public List<Task> list(Pageable pageable) {
         return taskRepository.findAllBy(pageable).toList();
     }
-
 }

@@ -20,11 +20,16 @@ import jakarta.annotation.security.PermitAll;
 
 import static com.vaadin.flow.theme.lumo.LumoUtility.*;
 
+import org.dasher.speed.taskmanagement.security.SecurityService;
+
 @Layout
 @PermitAll // When security is enabled, allow all authenticated users
 public final class MainLayout extends AppLayout {
 
-    MainLayout() {
+    private final SecurityService _securityService;
+
+    MainLayout(SecurityService securityService) {
+        _securityService = securityService;
         setPrimarySection(Section.DRAWER);
         addToDrawer(createHeader(), new Scroller(createSideNav()), createUserMenu());
     }
@@ -72,7 +77,9 @@ public final class MainLayout extends AppLayout {
         userMenuItem.add("John Smith");
         userMenuItem.getSubMenu().addItem("View Profile").setEnabled(false);
         userMenuItem.getSubMenu().addItem("Manage Settings").setEnabled(false);
-        userMenuItem.getSubMenu().addItem("Logout").setEnabled(false);
+        userMenuItem.getSubMenu().addItem("Logout", event -> {
+            _securityService.lougout();
+        });
 
         return userMenu;
     }
