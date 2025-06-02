@@ -7,12 +7,14 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.component.html.Div;
 
 import jakarta.annotation.security.PermitAll;
 
@@ -44,12 +46,14 @@ public class PersonInputView extends VerticalLayout {
 
     // Doctor specific fields
     private final FormLayout doctorFields = new FormLayout();
+    private final H2 doctorData = new H2("Doctor");
     private final TextField licenseNumber = new TextField("License Number");
     private final TextField licenseState = new TextField("License State");
     private final TextField medicalSpecialty = new TextField("Medical Specialty");
     private final TextField digitalSignature = new TextField("Digital Signature");
 
     // Patient specific fields
+    private final H2 PatientData = new H2("Patient");
     private final FormLayout patientFields = new FormLayout();
     private final TextField healthPlan = new TextField("Health Plan");
 
@@ -72,8 +76,29 @@ public class PersonInputView extends VerticalLayout {
     }
 
     private Component createFormLayout() {
-        FormLayout formLayout = new FormLayout();
-        
+        // Main vertical layout to contain everything
+        VerticalLayout mainLayout = new VerticalLayout();
+        mainLayout.setDefaultHorizontalComponentAlignment(Alignment.CENTER);
+        mainLayout.setWidth("80%");
+        mainLayout.setHeight("100%");
+        mainLayout.addClassNames(
+            LumoUtility.Padding.MEDIUM,
+            LumoUtility.BoxSizing.BORDER,
+            LumoUtility.Background.CONTRAST_5
+        );
+
+        configureEnumFields();
+        setupRoleListener();
+
+        mainLayout.add(createPersonSection());
+        mainLayout.add(new Hr());
+        mainLayout.add(createDoctorSection());
+        mainLayout.add(createPatientSection());
+
+        return mainLayout;
+    }
+
+    private void configureEnumFields() {
         // Configure gender options
         gender.setItems("Male", "Female", "Other");
         
@@ -82,6 +107,9 @@ public class PersonInputView extends VerticalLayout {
         
         // Configure role selection
         role.setItems(Role.values());
+    }
+
+    private void setupRoleListener() {
         role.addValueChangeListener(event -> {
             if (event.getValue() == Role.DOCTOR) {
                 doctorFields.setVisible(true);
@@ -94,39 +122,85 @@ public class PersonInputView extends VerticalLayout {
                 patientFields.setVisible(false);
             }
         });
+    }
 
-        // Add person fields
-        formLayout.add(
+    private Component createPersonSection() {
+        FormLayout personFormLayout = new FormLayout();
+        
+        personFormLayout.add(
             firstName, lastName,
             phone, cpf,
             gender, maritalStatus,
             role
         );
+        personFormLayout.setWidth("100%");
 
-        // Setup doctor fields
-        doctorFields.add(
+        return personFormLayout;
+    }
+
+    private Component createDoctorSection() {
+        doctorFields.setWidth("100%");
+        
+        // Create a div for the doctor header
+        Div doctorHeaderDiv = createSectionHeaderDiv(doctorData);
+
+        // Create a div for doctor form inputs
+        Div doctorInputsDiv = createSectionContentDiv();
+        
+        FormLayout doctorInputsLayout = new FormLayout();
+
+        doctorInputsLayout.add(
             licenseNumber, licenseState,
             medicalSpecialty, digitalSignature
         );
+
+        doctorInputsDiv.add(doctorInputsLayout);
+
+        // Add the divs to doctor fields
+        doctorFields.removeAll();
+        doctorFields.add(doctorHeaderDiv, doctorInputsDiv);
         doctorFields.setVisible(false);
 
-        // Setup patient fields
-        patientFields.add(healthPlan);
+        return doctorFields;
+    }
+
+    private Component createPatientSection() {
+        patientFields.setWidth("100%");
+        
+        // Create a div for the patient header
+        Div patientHeaderDiv = createSectionHeaderDiv(PatientData);
+
+        // Create a div for patient form inputs
+        Div patientInputsDiv = createSectionContentDiv();
+        
+        FormLayout patientInputsLayout = new FormLayout();
+        patientInputsLayout.add(healthPlan);
+        patientInputsDiv.add(patientInputsLayout);
+
+        patientFields.removeAll();
+        patientFields.add(patientHeaderDiv, patientInputsDiv);
         patientFields.setVisible(false);
 
-        // Add role-specific fields
-        formLayout.add(doctorFields, patientFields);
-        formLayout.setHeight("100%");
-        formLayout.addClassNames(
-            LumoUtility.Padding.MEDIUM,
-            LumoUtility.BoxSizing.BORDER,
-            LumoUtility.Background.CONTRAST_5
-        );
-        formLayout.getStyle().set("max-width", "80%");
-        formLayout.getStyle().set("width", "80%");
-        formLayout.getStyle().set("margin", "0 auto");
+        return patientFields;
+    }
 
-        return formLayout;
+    private Div createSectionHeaderDiv(Component headerComponent) {
+        Div headerDiv = new Div(headerComponent);
+        headerDiv.addClassNames(
+            LumoUtility.Padding.MEDIUM
+        );
+        headerDiv.setWidth("100%");
+        return headerDiv;
+    }
+
+    private Div createSectionContentDiv() {
+        Div contentDiv = new Div();
+        contentDiv.setWidth("100%");
+        contentDiv.addClassNames(
+            LumoUtility.Padding.MEDIUM,
+            LumoUtility.Margin.Top.MEDIUM
+        );
+        return contentDiv;
     }
 
     private Component createButtonLayout() {
