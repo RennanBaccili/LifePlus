@@ -1,7 +1,6 @@
 package org.dasher.speed.taskmanagement.domain;
 
 import jakarta.persistence.*;
-import java.io.Serializable;
 
 @Entity
 public class Person {
