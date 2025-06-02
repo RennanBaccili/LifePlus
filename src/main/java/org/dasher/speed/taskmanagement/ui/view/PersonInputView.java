@@ -1,5 +1,6 @@
 package org.dasher.speed.taskmanagement.ui.view;
 
+import com.vaadin.flow.theme.lumo.LumoUtility;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -7,6 +8,7 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
@@ -54,6 +56,9 @@ public class PersonInputView extends VerticalLayout {
     public PersonInputView() {
         addClassName("person-input-view");
         setSizeFull();
+        setDefaultHorizontalComponentAlignment(Alignment.CENTER);
+        setJustifyContentMode(JustifyContentMode.CENTER);
+        addClassNames(LumoUtility.Padding.MEDIUM);
 
         add(createTitle());
         add(createFormLayout());
@@ -111,6 +116,15 @@ public class PersonInputView extends VerticalLayout {
 
         // Add role-specific fields
         formLayout.add(doctorFields, patientFields);
+        formLayout.setHeight("100%");
+        formLayout.addClassNames(
+            LumoUtility.Padding.MEDIUM,
+            LumoUtility.BoxSizing.BORDER,
+            LumoUtility.Background.CONTRAST_5
+        );
+        formLayout.getStyle().set("max-width", "80%");
+        formLayout.getStyle().set("width", "80%");
+        formLayout.getStyle().set("margin", "0 auto");
 
         return formLayout;
     }
@@ -132,7 +146,24 @@ public class PersonInputView extends VerticalLayout {
 
         cancel.addClickListener(event -> clearForm());
 
-        return new FormLayout(save, cancel);
+        // Create a horizontal layout for buttons
+        HorizontalLayout buttonLayout = new HorizontalLayout(save, cancel);
+        buttonLayout.setSpacing(true);
+        buttonLayout.setPadding(false);
+
+        // Set fixed width for buttons
+        save.getStyle().set("width", "200px");
+        cancel.getStyle().set("width", "200px");
+
+        
+        buttonLayout.getStyle().set("max-width", "80%");
+        buttonLayout.getStyle().set("width", "100%");
+
+        buttonLayout.getStyle().set("justify-content", "end");
+        buttonLayout.getStyle().set("align-items", "end");
+        buttonLayout.getStyle().set("margin", "0 auto");
+
+        return buttonLayout;
     }
 
     private void setupFields() {
