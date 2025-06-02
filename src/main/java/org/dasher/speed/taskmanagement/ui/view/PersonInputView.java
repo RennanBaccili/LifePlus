@@ -15,15 +15,14 @@ import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.component.html.Div;
-
 import jakarta.annotation.security.PermitAll;
-
 import org.dasher.speed.taskmanagement.domain.Doctor;
 import org.dasher.speed.taskmanagement.domain.Enums.Role;
 import org.dasher.speed.taskmanagement.domain.Patient;
 import org.dasher.speed.taskmanagement.domain.Person;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
+
 
 @Route("person-registration")
 @PageTitle("Person Input")
@@ -44,7 +43,18 @@ public class PersonInputView extends VerticalLayout {
     private final ComboBox<String> maritalStatus = new ComboBox<>("Marital Status");
     private final ComboBox<Role> role = new ComboBox<>("Role");
 
+    {
+        firstName.setPlaceholder("Enter first name");
+        lastName.setPlaceholder("Enter last name");
+        phone.setPlaceholder("Enter phone number");
+        cpf.setPlaceholder("Enter CPF");
+        gender.setPlaceholder("Select gender");
+        maritalStatus.setPlaceholder("Select marital status");
+        role.setPlaceholder("Select role");
+    }
+
     // Doctor specific fields
+
     private final FormLayout doctorFields = new FormLayout();
     private final H2 doctorData = new H2("Doctor");
     private final TextField licenseNumber = new TextField("License Number");
@@ -52,10 +62,21 @@ public class PersonInputView extends VerticalLayout {
     private final TextField medicalSpecialty = new TextField("Medical Specialty");
     private final TextField digitalSignature = new TextField("Digital Signature");
 
+    {
+        licenseNumber.setPlaceholder("Enter license number");
+        licenseState.setPlaceholder("Enter license state");
+        medicalSpecialty.setPlaceholder("Enter medical specialty");
+        digitalSignature.setPlaceholder("Enter digital signature");
+    }
+
     // Patient specific fields
     private final H2 PatientData = new H2("Patient");
     private final FormLayout patientFields = new FormLayout();
     private final TextField healthPlan = new TextField("Health Plan");
+
+    {
+        healthPlan.setPlaceholder("Enter health plan");
+    }
 
     public PersonInputView() {
         addClassName("person-input-view");
@@ -64,7 +85,6 @@ public class PersonInputView extends VerticalLayout {
         setJustifyContentMode(JustifyContentMode.CENTER);
         addClassNames(LumoUtility.Padding.MEDIUM);
 
-        add(createTitle());
         add(createFormLayout());
         add(createButtonLayout());
 
@@ -89,7 +109,8 @@ public class PersonInputView extends VerticalLayout {
 
         configureEnumFields();
         setupRoleListener();
-
+      
+        mainLayout.add(createTitle());
         mainLayout.add(createPersonSection());
         mainLayout.add(new Hr());
         mainLayout.add(createDoctorSection());
@@ -141,10 +162,7 @@ public class PersonInputView extends VerticalLayout {
     private Component createDoctorSection() {
         doctorFields.setWidth("100%");
         
-        // Create a div for the doctor header
         Div doctorHeaderDiv = createSectionHeaderDiv(doctorData);
-
-        // Create a div for doctor form inputs
         Div doctorInputsDiv = createSectionContentDiv();
         
         FormLayout doctorInputsLayout = new FormLayout();
@@ -187,7 +205,7 @@ public class PersonInputView extends VerticalLayout {
     private Div createSectionHeaderDiv(Component headerComponent) {
         Div headerDiv = new Div(headerComponent);
         headerDiv.addClassNames(
-            LumoUtility.Padding.MEDIUM
+            LumoUtility.Padding.LARGE
         );
         headerDiv.setWidth("100%");
         return headerDiv;
@@ -197,8 +215,7 @@ public class PersonInputView extends VerticalLayout {
         Div contentDiv = new Div();
         contentDiv.setWidth("100%");
         contentDiv.addClassNames(
-            LumoUtility.Padding.MEDIUM,
-            LumoUtility.Margin.Top.MEDIUM
+            LumoUtility.Padding.MEDIUM
         );
         return contentDiv;
     }
@@ -312,7 +329,7 @@ public class PersonInputView extends VerticalLayout {
     }
 
     private static class ValidationException extends Exception {
-        public ValidationException(String message) {
+public ValidationException(String message) {
             super(message);
         }
     }
