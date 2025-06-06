@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.List;
 
 @Entity
+@Table(name = "app_user")
 public class User implements UserDetails {
 
     @Id
@@ -25,17 +26,6 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
-
-    // Relationships
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    private Person person;
-
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    private Doctor doctor;
-
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    private Patient patient;
-
     // --- UserDetails Implementation ---
 
     @Override
@@ -65,5 +55,32 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() { return true; }
 
-    // Getters and setters omitted for brevity
+    // Getters and Setters
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
 }

@@ -17,12 +17,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.component.html.Div;
 import jakarta.annotation.security.PermitAll;
-import org.dasher.speed.taskmanagement.domain.Doctor;
-import org.dasher.speed.taskmanagement.domain.Enums.Role;
-import org.dasher.speed.taskmanagement.domain.Patient;
-import org.dasher.speed.taskmanagement.domain.Person;
-import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.notification.NotificationVariant;
+import org.dasher.speed.taskmanagement.domain.Enums.PersonRole;
 
 
 @Route("person-registration")
@@ -31,10 +26,6 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 @PermitAll 
 public class PersonInputView extends VerticalLayout {
 
-    private final Person person = new Person();
-    private Doctor doctor;
-    private Patient patient;
-
     // Person fields
     private final TextField firstName = new TextField("First Name");
     private final TextField lastName = new TextField("Last Name");
@@ -42,7 +33,7 @@ public class PersonInputView extends VerticalLayout {
     private final TextField cpf = new TextField("CPF");
     private final ComboBox<String> gender = new ComboBox<>("Gender");
     private final ComboBox<String> maritalStatus = new ComboBox<>("Marital Status");
-    private final ComboBox<Role> role = new ComboBox<>("Role");
+    private final ComboBox<PersonRole> role = new ComboBox<>("Role");
 
     {
         firstName.setPrefixComponent(new Icon("vaadin", "user"));
@@ -140,15 +131,15 @@ public class PersonInputView extends VerticalLayout {
         maritalStatus.setItems("Single", "Married", "Divorced", "Widowed");
         
         // Configure role selection
-        role.setItems(Role.values());
+        role.setItems(PersonRole.values());
     }
 
     private void setupRoleListener() {
         role.addValueChangeListener(event -> {
-            if (event.getValue() == Role.DOCTOR) {
+            if (event.getValue() == PersonRole.Doctor) {
                 doctorFields.setVisible(true);
                 patientFields.setVisible(false);
-            } else if (event.getValue() == Role.PATIENT) {
+            } else if (event.getValue() == PersonRole.Patient) {
                 doctorFields.setVisible(false);
                 patientFields.setVisible(true);
             } else {
@@ -241,14 +232,6 @@ public class PersonInputView extends VerticalLayout {
         save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         cancel.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
-        save.addClickListener(event -> {
-            if (validateAndSave()) {
-                Notification.show("Registration successful!", 3000, Notification.Position.TOP_CENTER)
-                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                clearForm();
-            }
-        });
-
         cancel.addClickListener(event -> clearForm());
 
         // Create a horizontal layout for buttons
@@ -279,44 +262,6 @@ public class PersonInputView extends VerticalLayout {
         role.setRequired(true);
     }
 
-    private boolean validateAndSave() {
-        try {
-            // Basic validation
-            if (firstName.isEmpty() || lastName.isEmpty() || cpf.isEmpty() || role.isEmpty()) {
-                throw new ValidationException("Please fill in all required fields");
-            }
-
-            // Set person data
-            person.setFirstName(firstName.getValue());
-            person.setLastName(lastName.getValue());
-            person.setPhone(phone.getValue());
-            person.setCpf(cpf.getValue());
-            person.setGender(gender.getValue());
-            person.setMaritalStatus(maritalStatus.getValue());
-
-            // Handle role-specific data
-            if (role.getValue() == Role.DOCTOR) {
-                doctor = new Doctor();
-                doctor.setLicenseNumber(licenseNumber.getValue());
-                doctor.setLicenseState(licenseState.getValue());
-                doctor.setMedicalSpecialty(medicalSpecialty.getValue());
-                doctor.setDigitalSignature(digitalSignature.getValue());
-                // TODO: Save doctor data
-            } else if (role.getValue() == Role.PATIENT) {
-                patient = new Patient();
-                patient.setHealthPlan(healthPlan.getValue());
-                // TODO: Save patient data
-            }
-
-            // TODO: Save person data and establish relationships
-
-            return true;
-        } catch (ValidationException e) {
-            Notification.show(e.getMessage(), 3000, Notification.Position.TOP_CENTER)
-                .addThemeVariants(NotificationVariant.LUMO_ERROR);
-return false;
-        }
-    }
 
     private void clearForm() {
         // Clear person fields
@@ -342,9 +287,4 @@ return false;
         patientFields.setVisible(false);
     }
 
-    private static class ValidationException extends Exception {
-public ValidationException(String message) {
-            super(message);
-        }
-    }
 }

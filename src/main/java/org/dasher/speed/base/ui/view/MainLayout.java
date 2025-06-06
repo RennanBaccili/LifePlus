@@ -16,14 +16,14 @@ import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.router.Layout;
 import com.vaadin.flow.server.menu.MenuConfiguration;
 import com.vaadin.flow.server.menu.MenuEntry;
-import jakarta.annotation.security.PermitAll;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
 
 import static com.vaadin.flow.theme.lumo.LumoUtility.*;
 
 import org.dasher.speed.taskmanagement.security.SecurityService;
 
 @Layout
-@PermitAll // When security is enabled, allow all authenticated users
+@AnonymousAllowed
 public final class MainLayout extends AppLayout {
 
     private final SecurityService _securityService;

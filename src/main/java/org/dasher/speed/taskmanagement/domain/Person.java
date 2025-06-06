@@ -1,6 +1,7 @@
 package org.dasher.speed.taskmanagement.domain;
 
 import jakarta.persistence.*;
+import org.dasher.speed.taskmanagement.domain.Enums.PersonRole;
 
 @Entity
 public class Person {
@@ -19,9 +20,19 @@ public class Person {
     private String maritalStatus;
 
     @OneToOne
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Enumerated(EnumType.STRING)
+    private PersonRole role;
+
+    @OneToOne(mappedBy = "person", cascade = CascadeType.ALL)
+    private Doctor doctor;
+
+    @OneToOne(mappedBy = "person", cascade = CascadeType.ALL)
+    private Patient patient;
+
+    // Getters and Setters
     public Integer getId() {
         return id;
     }
@@ -84,5 +95,29 @@ public class Person {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public PersonRole getRole() {
+        return role;
+    }
+
+    public void setRole(PersonRole role) {
+        this.role = role;
+    }
+
+    public Doctor getDoctor() {
+        return doctor;
+    }
+
+    public void setDoctor(Doctor doctor) {
+        this.doctor = doctor;
+    }
+
+    public Patient getPatient() {
+        return patient;
+    }
+
+    public void setPatient(Patient patient) {
+        this.patient = patient;
     }
 }

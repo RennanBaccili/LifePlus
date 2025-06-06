@@ -9,13 +9,13 @@ public class Patient {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "health_plan")
     private String healthPlan;
 
     @OneToOne
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
-    private User user;
+    @JoinColumn(name = "person_id")
+    private Person person;
 
+    // Getters and Setters
     public Integer getId() {
         return id;
     }
@@ -32,11 +32,11 @@ public class Patient {
         this.healthPlan = healthPlan;
     }
 
-    public User getUser() {
-        return user;
+    public Person getPerson() {
+        return person;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setPerson(Person person) {
+        this.person = person;
     }
 }

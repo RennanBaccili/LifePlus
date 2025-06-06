@@ -8,9 +8,10 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.provisioning.UserDetailsManager;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import com.vaadin.flow.spring.security.VaadinWebSecurity;
 
@@ -20,37 +21,50 @@ public class SecurityConfiguration extends VaadinWebSecurity {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeHttpRequests(auth -> auth.requestMatchers(new AntPathRequestMatcher("/public/**"))
-            .permitAll());
-
-        super.configure(http); 
-        setLoginView(http, LoginView.class); 
+        // Configura a página de login
+        setLoginView(http, LoginView.class);
+        
+        // Configura o Vaadin security
+        super.configure(http);
     }
 
     @Override
     public void configure(WebSecurity web) throws Exception {
-        web.ignoring().requestMatchers("/images/**"); // Use requestMatchers instead of antMatchers
-        super.configure(web);
+        // Ignora completamente essas URLs do sistema de segurança
+        web.ignoring().requestMatchers(
+            "/register/**",
+            "/register",
+            "/test-register/**", 
+            "/test-register",
+            "/h2-console/**",
+            "/images/**",
+            "/icons/**",
+            "/VAADIN/**",
+            "/vaadinServlet/**",
+            "/frontend/**",
+            "/webjars/**",
+            "/frontend-es5/**",
+            "/frontend-es6/**"
+        );
     }
 
-    /**
-     * Demo UserDetailsManager which only provides two hardcoded
-     * in memory users and their roles.
-     * NOTE: This shouldn't be used in real world applications.
-     */
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
     @Bean
     public UserDetailsManager userDetailsService() {
         UserDetails user =
-                User.withUsername("usuario@email.com")  // <- email como login
+                User.withUsername("usuario@email.com")
                         .password("{noop}user")
                         .roles("USER")
                         .build();
         UserDetails admin =
-                User.withUsername("admin@email.com") // <- email também
+                User.withUsername("admin@email.com")
                         .password("{noop}admin")
                         .roles("ADMIN")
                         .build();
         return new InMemoryUserDetailsManager(user, admin);
     }
-    
 }
