@@ -3,10 +3,12 @@ package org.dasher.speed.taskmanagement.ui.view;
 import org.dasher.speed.base.ui.component.ViewToolbar;
 import org.dasher.speed.taskmanagement.domain.Enums.Role;
 import org.dasher.speed.taskmanagement.domain.User;
+import org.dasher.speed.taskmanagement.service.AuthenticationService;
 import org.dasher.speed.taskmanagement.service.UserService;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -15,32 +17,27 @@ import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.dom.Style.Display;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.router.RouterLayout;
+import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import org.springframework.beans.factory.annotation.Autowired;
 
-@Route(value = "register", layout = RegisterView.EmptyLayout.class)
-@PageTitle("Register | LifePlus")
+@Route("register")
+@PageTitle("Registro | LifePlus")
 @AnonymousAllowed
 public class RegisterView extends VerticalLayout {
 
-    // Layout vazio para evitar o MainLayout
-    public static class EmptyLayout extends VerticalLayout implements RouterLayout {
-        public EmptyLayout() {
-            setSizeFull();
-            setPadding(false);
-            setMargin(false);
-        }
-    }
+
 
     private final UserService userService;
+    private final AuthenticationService authService;
     private EmailField email;
     private PasswordField password;
     private PasswordField confirmPassword;
 
     @Autowired
-    public RegisterView(UserService userService) {
+    public RegisterView(UserService userService, AuthenticationService authService) {
         this.userService = userService;
+        this.authService = authService;
         
         // Layout principal da página
         setSizeFull();
@@ -68,16 +65,29 @@ public class RegisterView extends VerticalLayout {
         formLayout.setSizeFull();
 
         // Create registration form
-        FormLayout registrationForm = createRegistrationForm();
+        VerticalLayout registrationForm = createRegistrationForm();
         formLayout.add(new H2("Create Account"), registrationForm);
 
         // Add layouts to main layout
         add(toolbarLayout, formLayout);
     }
 
-    private FormLayout createRegistrationForm() {
-        FormLayout formLayout = new FormLayout();
-        formLayout.setMaxWidth("400px");
+    private VerticalLayout createRegistrationForm() {
+                  FormLayout formLayout = new FormLayout();
+          formLayout.getStyle()
+              .set("display", "flex")
+              .set("align-items", "baseline")
+              .set("flex-wrap", "wrap")
+              .set("max-width", "300px")
+              .set("justify-content", "center")
+              .set("flex-direction", "column")
+              .set("margin", "0 auto");
+
+          
+        VerticalLayout container = new VerticalLayout();
+        container.setAlignItems(Alignment.CENTER);
+        container.setJustifyContentMode(JustifyContentMode.CENTER);
+        container.setSizeFull();
 
         email = new EmailField("Email");
         email.setRequired(true);
@@ -95,7 +105,8 @@ public class RegisterView extends VerticalLayout {
         registerButton.addClassName("register-button");
 
         formLayout.add(email, password, confirmPassword, registerButton);
-        return formLayout;
+         container.add(formLayout);
+         return container;
     }
 
     private void register() {
@@ -115,12 +126,13 @@ public class RegisterView extends VerticalLayout {
             newUser.setPassword(password.getValue());
             newUser.setRole(Role.USER);
 
-            userService.register(newUser);
-
-            Notification.show("Registration successful! Please login.", 
+            User registeredUser = userService.register(newUser);
+            String token = authService.authenticate(email.getValue(), password.getValue());
+            VaadinSession.getCurrent().setAttribute("jwt_token", token);
+            Notification.show("Registration successful! Please wait while we redirect you...", 
                 3000, Notification.Position.TOP_CENTER);
-            getUI().ifPresent(ui -> ui.navigate("login"));
-        } catch (Exception e) {
+            
+            } catch (Exception e) {
             Notification.show("Registration failed: " + e.getMessage(), 
                 3000, Notification.Position.TOP_CENTER);
         }

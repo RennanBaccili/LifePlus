@@ -9,21 +9,14 @@ import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterListener;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.router.RouterLayout;
-import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.router.RouterLink;
 
-@Route(value = "login", layout = LoginView.EmptyLayout.class)
+
+@Route(value = "login")
 @PageTitle("Login | LifePlus")
 public class LoginView extends VerticalLayout implements BeforeEnterListener {
 
     // Layout vazio para evitar o MainLayout
-    public static class EmptyLayout extends VerticalLayout implements RouterLayout {
-        public EmptyLayout() {
-            setSizeFull();
-            setPadding(false);
-            setMargin(false);
-        }
-    }
 
     private LoginForm login = new LoginForm();
 
@@ -58,7 +51,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterListener {
         login.setAction("login");
 
         // Adiciona o link de registro
-        Anchor registerLink = new Anchor("register", "Não tem uma conta? Registre-se aqui");
+        RouterLink registerLink = new RouterLink("Não tem uma conta? Registre-se aqui", RegisterView.class);
         registerLink.getStyle().set("margin-top", "1em");
         
         loginLayout.add(login, registerLink);
