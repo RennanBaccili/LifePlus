@@ -75,6 +75,9 @@ public final class MainLayout extends AppLayout {
 
         var userMenuItem = userMenu.addItem(avatar);
         userMenuItem.add("John Smith");
+        userMenuItem.getSubMenu().addItem("Dados Pessoais", event -> {
+            com.vaadin.flow.component.UI.getCurrent().navigate("person");
+        });
         userMenuItem.getSubMenu().addItem("View Profile").setEnabled(false);
         userMenuItem.getSubMenu().addItem("Manage Settings").setEnabled(false);
         userMenuItem.getSubMenu().addItem("Logout", event -> {

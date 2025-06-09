@@ -1,6 +1,10 @@
 package org.dasher.speed.taskmanagement.domain;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 import org.dasher.speed.taskmanagement.domain.Enums.Role;
 import org.springframework.security.core.GrantedAuthority;
@@ -10,17 +14,24 @@ import java.util.Collection;
 import java.util.List;
 
 @Entity
-@Table(name = "app_user")
+@Table(name = "users")
 public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
-    @Column(nullable = false, unique = true)
+    @NotBlank(message = "Email is required")
+    @Email(message = "Invalid email format")
+    @Column(unique = true)
     private String email;
 
-    @Column(nullable = false)
+    @NotBlank(message = "Password is required")
+    @Size(min = 8, message = "Password must be at least 8 characters long")
+    @Pattern(
+        regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$",
+        message = "Password must contain at least one digit, one uppercase, one lowercase, one special character"
+    )
     private String password;
 
     @Enumerated(EnumType.STRING)
@@ -56,11 +67,11 @@ public class User implements UserDetails {
     public boolean isEnabled() { return true; }
 
     // Getters and Setters
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
