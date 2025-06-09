@@ -32,7 +32,7 @@ public class SecurityConfiguration extends VaadinWebSecurity {
         // Configure Vaadin security ONLY
         setLoginView(http, LoginView.class);
         super.configure(http);
-    }
+    } 
 
     @Override
     public void configure(WebSecurity web) throws Exception {

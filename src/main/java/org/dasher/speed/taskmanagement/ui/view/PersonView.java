@@ -29,7 +29,7 @@ import jakarta.annotation.security.RolesAllowed;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 @Route("person")
-@PageTitle("Dados Pessoais | LifePlus")
+@PageTitle("View Profile | LifePlus")
 @RolesAllowed({"USER", "ADMIN"})
 public class PersonView extends VerticalLayout {
     private final PersonService personService;

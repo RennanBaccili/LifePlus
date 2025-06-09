@@ -10,6 +10,7 @@ import com.vaadin.flow.router.BeforeEnterListener;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouterLink;
+import com.vaadin.flow.component.UI;
 
 
 @Route(value = "login")
@@ -46,9 +47,14 @@ public class LoginView extends VerticalLayout implements BeforeEnterListener {
         loginLayout.setJustifyContentMode(JustifyContentMode.CENTER);
         loginLayout.setSizeFull();
     
-        LoginForm login = new LoginForm();
+        login = new LoginForm();
         login.setI18n(createCustomI18n());
         login.setAction("login");
+
+        // Adiciona listener para sucesso no login
+        login.addLoginListener(e -> {
+            UI.getCurrent().navigate("");
+        });
 
         // Adiciona o link de registro
         RouterLink registerLink = new RouterLink("Não tem uma conta? Registre-se aqui", RegisterView.class);

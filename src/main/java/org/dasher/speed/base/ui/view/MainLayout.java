@@ -11,12 +11,14 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
 import com.vaadin.flow.component.orderedlayout.Scroller;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.router.Layout;
 import com.vaadin.flow.server.menu.MenuConfiguration;
 import com.vaadin.flow.server.menu.MenuEntry;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import org.dasher.speed.base.ui.components.ThemeToggle;
 
 import static com.vaadin.flow.theme.lumo.LumoUtility.*;
 
@@ -27,24 +29,36 @@ import org.dasher.speed.taskmanagement.security.SecurityService;
 public final class MainLayout extends AppLayout {
 
     private final SecurityService _securityService;
+    private final ThemeToggle themeToggle;
 
     MainLayout(SecurityService securityService) {
         _securityService = securityService;
+        themeToggle = new ThemeToggle();
         setPrimarySection(Section.DRAWER);
         addToDrawer(createHeader(), new Scroller(createSideNav()), createUserMenu());
     }
 
     private Div createHeader() {
-        // TODO Replace with real application logo and name
+        // Logo e nome da aplicação
         var appLogo = VaadinIcon.CUBES.create();
         appLogo.addClassNames(TextColor.PRIMARY, IconSize.LARGE);
 
-        var appName = new Span("Antlers Renderer");
+        var appName = new Span("Life Plus");
         appName.addClassNames(FontWeight.SEMIBOLD, FontSize.LARGE);
 
-        var header = new Div(appLogo, appName);
-        header.addClassNames(Display.FLEX, Padding.MEDIUM, Gap.MEDIUM, AlignItems.CENTER);
-        return header;
+        var leftSide = new HorizontalLayout(appLogo, appName);
+        leftSide.addClassNames(Gap.MEDIUM, AlignItems.CENTER);
+        leftSide.setFlexGrow(1);
+
+        // Toggle de tema no lado direito
+        var rightSide = new HorizontalLayout(themeToggle);
+        rightSide.addClassNames(AlignItems.CENTER);
+
+        var header = new HorizontalLayout(leftSide, rightSide);
+        header.addClassNames(Display.FLEX, Padding.MEDIUM, Width.FULL);
+        header.setWidthFull();
+
+        return new Div(header);
     }
 
     private SideNav createSideNav() {
@@ -63,7 +77,6 @@ public final class MainLayout extends AppLayout {
     }
 
     private Component createUserMenu() {
-        // TODO Replace with real user information and actions
         var avatar = new Avatar("John Smith");
         avatar.addThemeVariants(AvatarVariant.LUMO_XSMALL);
         avatar.addClassNames(Margin.Right.SMALL);
@@ -74,17 +87,17 @@ public final class MainLayout extends AppLayout {
         userMenu.addClassNames(Margin.MEDIUM);
 
         var userMenuItem = userMenu.addItem(avatar);
-        userMenuItem.add("John Smith");
-        userMenuItem.getSubMenu().addItem("Dados Pessoais", event -> {
+        userMenuItem.add("User");
+        userMenuItem.getSubMenu().addItem("View Profile", event -> {
             com.vaadin.flow.component.UI.getCurrent().navigate("person");
         });
-        userMenuItem.getSubMenu().addItem("View Profile").setEnabled(false);
+   
         userMenuItem.getSubMenu().addItem("Manage Settings").setEnabled(false);
+        
         userMenuItem.getSubMenu().addItem("Logout", event -> {
             _securityService.lougout();
         });
 
         return userMenu;
     }
-
 }
