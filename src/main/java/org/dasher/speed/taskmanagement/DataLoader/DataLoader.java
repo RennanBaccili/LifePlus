@@ -27,7 +27,6 @@ public class DataLoader implements CommandLineRunner {
         // Inserindo dados automaticamente
         taskRepository.save(contact1);
         taskRepository.save(contact2);
-        
     }
 }
     /* 

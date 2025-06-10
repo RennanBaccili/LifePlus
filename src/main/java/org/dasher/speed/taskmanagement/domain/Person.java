@@ -3,6 +3,31 @@ package org.dasher.speed.taskmanagement.domain;
 import jakarta.persistence.*;
 import org.dasher.speed.taskmanagement.domain.Enums.PersonRole;
 
+@Converter
+class PersonRoleConverter implements AttributeConverter<PersonRole, String> {
+    @Override
+    public String convertToDatabaseColumn(PersonRole attribute) {
+        return attribute != null ? attribute.name() : null;
+    }
+
+    @Override
+    public PersonRole convertToEntityAttribute(String dbData) {
+        if (dbData == null) return null;
+        try {
+            return PersonRole.valueOf(dbData.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            // Handle old data with proper case
+            switch (dbData) {
+                case "Patient": return PersonRole.PATIENT;
+                case "Doctor": return PersonRole.DOCTOR;
+                case "Admin": return PersonRole.ADMIN;
+                default: 
+                    throw new IllegalArgumentException("Unknown PersonRole: " + dbData);
+            }
+        }
+    }
+}
+
 @Entity
 public class Person {
 
@@ -23,7 +48,7 @@ public class Person {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = PersonRoleConverter.class)
     private PersonRole role;
 
     @OneToOne(mappedBy = "person", cascade = CascadeType.ALL)

@@ -104,7 +104,7 @@ public class PersonView extends VerticalLayout {
 
         // Configurar Select de Role
         role.setLabel("Tipo de Usuário");
-        role.setItems(PersonRole.Patient, PersonRole.Doctor);
+        role.setItems(PersonRole.PATIENT, PersonRole.DOCTOR);
         role.setItemLabelGenerator(this::getRoleLabel);
         role.setPlaceholder("Selecione...");
 
@@ -151,9 +151,9 @@ public class PersonView extends VerticalLayout {
 
     private String getRoleLabel(PersonRole role) {
         switch (role) {
-            case Patient: return "Paciente";
-            case Doctor: return "Médico";
-            case Admin: return "Administrador";
+            case PATIENT: return "Paciente";
+            case DOCTOR: return "Médico";
+            case ADMIN: return "Administrador";
             default: return role.name();
         }
     }
@@ -208,8 +208,8 @@ public class PersonView extends VerticalLayout {
     }
 
     private void updateFieldVisibility(PersonRole selectedRole) {
-        boolean showDoctor = selectedRole == PersonRole.Doctor;
-        boolean showPatient = selectedRole == PersonRole.Patient;
+        boolean showDoctor = selectedRole == PersonRole.DOCTOR;
+        boolean showPatient = selectedRole == PersonRole.PATIENT;
 
         formLayout.getChildren()
             .filter(component -> component.getClass().equals(VerticalLayout.class))
@@ -362,11 +362,11 @@ public class PersonView extends VerticalLayout {
     private void handleRoleSpecificData(Person person) {
         PersonRole selectedRole = person.getRole();
         
-        if (selectedRole == PersonRole.Doctor) {
+        if (selectedRole == PersonRole.DOCTOR) {
             handleDoctorData(person);
             // Remover dados de patient se existir
             person.setPatient(null);
-        } else if (selectedRole == PersonRole.Patient) {
+        } else if (selectedRole == PersonRole.PATIENT) {
             handlePatientData(person);
             // Remover dados de doctor se existir
             person.setDoctor(null);
@@ -405,13 +405,13 @@ public class PersonView extends VerticalLayout {
     }
 
     private void loadRoleSpecificData() {
-        if (currentPerson.getRole() == PersonRole.Doctor && currentPerson.getDoctor() != null) {
+        if (currentPerson.getRole() == PersonRole.DOCTOR && currentPerson.getDoctor() != null) {
             Doctor doctor = currentPerson.getDoctor();
             licenseNumber.setValue(doctor.getLicenseNumber() != null ? doctor.getLicenseNumber() : "");
             licenseState.setValue(doctor.getLicenseState() != null ? doctor.getLicenseState() : "");
             medicalSpecialty.setValue(doctor.getMedicalSpecialty() != null ? doctor.getMedicalSpecialty() : "");
             digitalSignature.setValue(doctor.getDigitalSignature() != null ? doctor.getDigitalSignature() : "");
-        } else if (currentPerson.getRole() == PersonRole.Patient && currentPerson.getPatient() != null) {
+        } else if (currentPerson.getRole() == PersonRole.PATIENT && currentPerson.getPatient() != null) {
             Patient patient = currentPerson.getPatient();
             healthPlan.setValue(patient.getHealthPlan() != null ? patient.getHealthPlan() : "");
         }
