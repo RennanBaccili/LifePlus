@@ -42,7 +42,7 @@ public class PersonService {
     }
 
     @Transactional(readOnly = true)
-    public List<Person> searchContacts(String searchTerm) {
+    public List<Person> searchDoctorsByName(String searchTerm) {
         if (searchTerm == null || searchTerm.trim().isEmpty()) {
             return findAllDoctors();
         }

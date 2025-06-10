@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, Integer> {
@@ -54,4 +55,18 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
            "ORDER BY a.appointmentDate")
     List<Appointment> findUpcomingByDoctor(@Param("doctor") Doctor doctor,
                                            @Param("now") LocalDateTime now);
+
+    @Query("SELECT a FROM Appointment a " +
+           "LEFT JOIN FETCH a.doctor d " +
+           "LEFT JOIN FETCH d.person dp " +
+           "LEFT JOIN FETCH a.person p " +
+           "ORDER BY a.appointmentDate")
+    List<Appointment> findAllWithDetails();
+
+    @Query("SELECT a FROM Appointment a " +
+           "LEFT JOIN FETCH a.doctor d " +
+           "LEFT JOIN FETCH d.person dp " +
+           "LEFT JOIN FETCH a.person p " +
+           "WHERE a.id = :id")
+    Optional<Appointment> findByIdWithDetails(@Param("id") Integer id);
 } 

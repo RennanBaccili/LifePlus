@@ -14,6 +14,9 @@ import org.vaadin.stefan.fullcalendar.FullCalendar;
 import org.vaadin.stefan.fullcalendar.FullCalendarBuilder;
 import org.vaadin.stefan.fullcalendar.Entry;
 import org.vaadin.stefan.fullcalendar.CalendarViewImpl;
+import org.vaadin.stefan.fullcalendar.Timezone;
+import org.vaadin.stefan.fullcalendar.TimeslotClickedEvent;
+import org.vaadin.stefan.fullcalendar.EntryClickedEvent;
 
 import org.dasher.speed.base.ui.component.ViewToolbar;
 import org.dasher.speed.taskmanagement.domain.Appointment;
@@ -25,14 +28,20 @@ import org.dasher.speed.taskmanagement.service.AppointmentService;
 import org.dasher.speed.taskmanagement.service.PersonService;
 import org.dasher.speed.taskmanagement.service.UserService;
 import org.dasher.speed.taskmanagement.security.SecurityService;
+import org.dasher.speed.taskmanagement.ui.components.AppointmentDialog;
 
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
 
 @Route("Calendar")
 @PageTitle("Minha Agenda | LifePlus")
@@ -40,266 +49,255 @@ import java.util.Optional;
 @RolesAllowed({"USER", "ADMIN"})
 public class CalendarView extends VerticalLayout {
 
+    private final FullCalendar calendar;
     private final AppointmentService appointmentService;
     private final PersonService personService;
     private final UserService userService;
-    private final SecurityService securityService;
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    private final Map<Entry, Integer> entryToAppointmentId = new HashMap<>();
 
-    private FullCalendar calendar;
-    private Doctor currentDoctor;
-    private Person currentPerson;
-
-    private final Button newAppointmentButton = new Button("Novo Agendamento");
-
-    public CalendarView(AppointmentService appointmentService, 
-                       PersonService personService,
-                       UserService userService,
-                       SecurityService securityService) {
+    public CalendarView(AppointmentService appointmentService, PersonService personService, UserService userService) {
         this.appointmentService = appointmentService;
         this.personService = personService;
         this.userService = userService;
-        this.securityService = securityService;
-
-        setupLayout();
-        loadCurrentDoctor();
-        setupCalendar();
-        loadAppointments();
-    }
-
-    private void setupLayout() {
+        
         setSizeFull();
-        setPadding(true);
-        setSpacing(true);
-
-        var toolbar = new ViewToolbar("Minha Agenda");
-        add(toolbar);
-
-        setupControlButtons();
-    }
-
-    private void setupControlButtons() {
-        newAppointmentButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        newAppointmentButton.addClickListener(e -> openNewAppointmentDialog());
-
-        HorizontalLayout buttonsLayout = new HorizontalLayout();
-        buttonsLayout.add(newAppointmentButton);
-        buttonsLayout.setSpacing(true);
-        add(buttonsLayout);
-    }
-
-    private void loadCurrentDoctor() {
-        try {
-            String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
-            User currentUser = (User) userService.loadUserByUsername(currentUsername);
-            
-            if (currentUser != null) {
-                Optional<Person> personOpt = personService.findByUser(currentUser);
-                if (personOpt.isPresent()) {
-                    currentPerson = personOpt.get();
-                    
-                    // Se a pessoa é médico, permite criar agendamentos
-                    if (currentPerson.getRole() == PersonRole.DOCTOR && currentPerson.getDoctor() != null) {
-                        currentDoctor = currentPerson.getDoctor();
-                        newAppointmentButton.setText("Novo Agendamento (Como Médico)");
-                    } else {
-                        // Qualquer pessoa pode ver seus agendamentos, mas não criar como médico
-                        newAppointmentButton.setVisible(false);
-                    }
-                } else {
-                    showErrorNotification("Perfil de pessoa não encontrado");
-                    newAppointmentButton.setEnabled(false);
-                }
-            } else {
-                showErrorNotification("Usuário não encontrado");
-                newAppointmentButton.setEnabled(false);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            showErrorNotification("Erro ao carregar dados: " + e.getMessage());
-        }
-    }
-
-    private void setupCalendar() {
-        // Criar calendário usando o builder
         calendar = FullCalendarBuilder.create().build();
+
+        //calendar.setLocale("pt-br"); // Ativa idioma português
+        calendar.changeView(CalendarViewImpl.DAY_GRID_MONTH); // Exibe semana
+
         calendar.setSizeFull();
-        
-        // Configurar visualização inicial
-        calendar.changeView(CalendarViewImpl.DAY_GRID_MONTH);
-        
-        // Adicionar listener para clique em entradas
-        calendar.addEntryClickedListener(event -> {
-            Entry clickedEntry = event.getEntry();
-            if (clickedEntry != null && clickedEntry.getCustomProperty("appointmentId") != null) {
-                String appointmentIdStr = clickedEntry.getCustomProperty("appointmentId").toString();
-                try {
-                    Integer appointmentId = Integer.parseInt(appointmentIdStr);
-                    openEditAppointmentDialog(appointmentId);
-                } catch (NumberFormatException ex) {
-                    showErrorNotification("Erro ao abrir agendamento");
-                }
-            }
-        });
-
-        // Adicionar listener para clique em datas vazias
-        calendar.addTimeslotClickedListener(event -> {
-            LocalDate clickedDate = event.getDate();
-            openNewAppointmentDialog(clickedDate);
-        });
-
         add(calendar);
+        setFlexGrow(1, calendar);
+
+        // Adiciona listener para clique em uma data vazia
+        calendar.addTimeslotClickedListener(this::handleDateClick);
+        
+        // Adiciona listener para clique em eventos existentes
+        calendar.addEntryClickedListener(this::handleEntryClick);
+
+        // Carrega os agendamentos existentes
+        loadExistingAppointments();
     }
 
-    private void loadAppointments() {
-        if (currentPerson == null) {
-            return;
-        }
-
+    private void loadExistingAppointments() {
         try {
-            List<Appointment> allAppointments = new java.util.ArrayList<>();
+            // Busca todos os agendamentos
+            List<Appointment> appointments = appointmentService.findAll();
             
-            // Se for médico, carregar agendamentos onde é o médico
-            if (currentDoctor != null) {
-                List<Appointment> doctorAppointments = appointmentService.findByDoctor(currentDoctor);
-                allAppointments.addAll(doctorAppointments);
+            // Adiciona cada agendamento ao calendário
+            for (Appointment appointment : appointments) {
+                addAppointmentToCalendar(appointment);
             }
-            
-            // Carregar agendamentos onde a pessoa é paciente (qualquer pessoa pode ter)
-            List<Appointment> personAppointments = appointmentService.findByPerson(currentPerson);
-            allAppointments.addAll(personAppointments);
-            
-            // Remover duplicatas (caso a pessoa seja médico e paciente do mesmo agendamento - improvável mas possível)
-            allAppointments = allAppointments.stream().distinct().collect(java.util.stream.Collectors.toList());
-            
-            String appointmentType = currentDoctor != null ? 
-                "agendamentos (como médico e paciente)" : 
-                "agendamentos (como paciente)";
-                
-            showSuccessNotification("Encontrados " + allAppointments.size() + " " + appointmentType);
-            
-            // TODO: Implementar carregamento dos agendamentos no calendário
-            // A API do FullCalendar pode variar dependendo da versão
-            // Use calendar.add(entry) ou calendar.addEntry(entry) dependendo da versão
-            
-            // Exemplo de como seria a implementação:
-            /*
-            for (Appointment appointment : allAppointments) {
-                Entry entry = new Entry();
-                
-                // Definir título baseado na perspectiva
-                String title;
-                if (currentDoctor != null && appointment.getDoctor().equals(currentDoctor)) {
-                    // Esta pessoa é o médico deste agendamento
-                    title = "👨‍⚕️ " + (appointment.getTitle() != null ? appointment.getTitle() : "Consulta");
-                } else {
-                    // Esta pessoa é o paciente deste agendamento
-                    title = "🩺 Consulta com Dr. " + appointment.getDoctor().getPerson().getFirstName();
+        } catch (Exception e) {
+            Notification.show("Erro ao carregar agendamentos: " + e.getMessage(), 
+                3000, Notification.Position.MIDDLE);
+        }
+    }
+
+    private Entry createCalendarEntry(Appointment appointment) {
+        Entry entry = new Entry();
+        
+        // Informações básicas
+        entry.setTitle(appointment.getTitle());
+        entry.setStart(appointment.getAppointmentDate());
+        entry.setEnd(appointment.getEndDate());
+        entry.setColor("#2196F3"); // Cor padrão para consultas
+        
+        // Adiciona informações detalhadas na descrição
+        StringBuilder description = new StringBuilder();
+        description.append("Médico: ").append(appointment.getDoctor().getPerson().getFirstName())
+                  .append(" ").append(appointment.getDoctor().getPerson().getLastName());
+        
+        if (appointment.getPerson() != null) {
+            description.append("\nAgendado por: ").append(appointment.getPerson().getFirstName())
+                      .append(" ").append(appointment.getPerson().getLastName());
+        }
+        
+        if (appointment.getDescription() != null) {
+            description.append("\n").append(appointment.getDescription());
+        }
+        
+        entry.setDescription(description.toString());
+        
+        // Guarda o ID do appointment para referência
+        entryToAppointmentId.put(entry, appointment.getId());
+        
+        return entry;
+    }
+
+    private void addAppointmentToCalendar(Appointment appointment) {
+        Entry entry = createCalendarEntry(appointment);
+        calendar.getEntryProvider().asInMemory().addEntry(entry);
+    }
+
+    private List<Person> getDoctors() {
+        return personService.findAllDoctors().stream()
+            .collect(Collectors.toList());
+    }
+
+    private Person getCurrentPerson() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User currentUser = (User) userService.loadUserByUsername(username);
+        return personService.findByUser(currentUser)
+            .orElseThrow(() -> new IllegalStateException("Usuário atual não possui Person associada"));
+    }
+
+    private void handleDateClick(TimeslotClickedEvent event) {
+        LocalDateTime clickedDateTime = event.getDateTime();
+        List<Person> doctors = getDoctors(); // Busca todas as pessoas que são médicos
+        
+        AppointmentDialog dialog = new AppointmentDialog(
+            "Novo Agendamento",
+            "Criar agendamento para " + clickedDateTime.format(DATE_FORMATTER),
+            doctors,
+            clickedDateTime
+        );
+        
+        // Configura os botões para novo agendamento
+        dialog.showEditButton(false);
+        dialog.showCancelButton(false);
+        dialog.showSaveButton(true);
+        
+        // Configura ação de salvar
+        dialog.onSave(() -> {
+            try {
+                Person selectedDoctor = dialog.getSelectedDoctor();
+                if (selectedDoctor == null) {
+                    throw new IllegalArgumentException("Por favor, selecione um médico");
                 }
-                entry.setTitle(title);
+
+                // Verifica se o Doctor já existe na Person
+                Doctor doctor = selectedDoctor.getDoctor();
+                if (doctor == null) {
+                    throw new IllegalArgumentException("Médico selecionado não possui cadastro como doutor");
+                }
+
+                // Obtém a Person do usuário atual
+                Person currentPerson = getCurrentPerson();
                 
-                // Converter LocalDateTime para Instant
-                Instant startInstant = appointment.getAppointmentDate().atZone(java.time.ZoneId.systemDefault()).toInstant();
-                Instant endInstant = appointment.getEndDate().atZone(java.time.ZoneId.systemDefault()).toInstant();
+                // Cria um novo agendamento com os dados do formulário
+                Appointment appointment = new Appointment();
+                appointment.setTitle(dialog.getTitle());
+                appointment.setAppointmentDate(dialog.getStartDateTime());
+                appointment.setEndDate(dialog.getEndDateTime());
+                appointment.setStatus(Appointment.AppointmentStatus.SCHEDULED);
+                appointment.setDoctor(doctor); // Médico selecionado
+                appointment.setPerson(currentPerson); // Pessoa que está agendando
                 
-                entry.setStart(startInstant);
-                entry.setEnd(endInstant);
+                // Se a pessoa que está agendando é um paciente, adiciona informações extras
+                if (currentPerson.getRole() == PersonRole.PATIENT) {
+                    appointment.setDescription("Paciente: " + currentPerson.getFirstName() + " " + currentPerson.getLastName());
+                }
                 
-                // Adicionar informações customizadas
-                entry.setCustomProperty("appointmentId", appointment.getId().toString());
-                entry.setCustomProperty("isDoctor", 
-                    currentDoctor != null && appointment.getDoctor().equals(currentDoctor) ? "true" : "false");
+                // Valida e salva o agendamento
+                appointmentService.validateAppointment(appointment);
+                Appointment savedAppointment = appointmentService.save(appointment);
                 
-                // Cor baseada no status e perspectiva
-                String color = getColorByStatus(appointment.getStatus());
-                entry.setColor(color);
+                // Adiciona ao calendário
+                addAppointmentToCalendar(savedAppointment);
                 
-                calendar.add(entry); // ou calendar.addEntry(entry)
+                Notification.show("Agendamento criado com sucesso!", 3000, Notification.Position.MIDDLE);
+            } catch (Exception e) {
+                Notification.show("Erro ao criar agendamento: " + e.getMessage(), 
+                    3000, Notification.Position.MIDDLE);
             }
-            */
-        } catch (Exception e) {
-            e.printStackTrace();
-            showErrorNotification("Erro ao carregar agendamentos: " + e.getMessage());
-        }
+        });
+        
+        dialog.open();
     }
 
-    private String getColorByStatus(Appointment.AppointmentStatus status) {
-        switch (status) {
-            case SCHEDULED: return "#2196F3"; // Azul
-            case CONFIRMED: return "#4CAF50"; // Verde
-            case IN_PROGRESS: return "#FF9800"; // Laranja
-            case COMPLETED: return "#9E9E9E"; // Cinza
-            case CANCELLED: return "#F44336"; // Vermelho
-            case NO_SHOW: return "#795548"; // Marrom
-            default: return "#2196F3";
-        }
-    }
-
-    private void openNewAppointmentDialog() {
-        openNewAppointmentDialog(null);
-    }
-
-    private void openNewAppointmentDialog(LocalDate selectedDate) {
-        if (currentDoctor == null) {
-            showErrorNotification("Erro: Médico não identificado");
+    private void handleEntryClick(EntryClickedEvent event) {
+        Entry clickedEntry = event.getEntry();
+        Integer appointmentId = entryToAppointmentId.get(clickedEntry);
+        
+        if (appointmentId == null) {
+            Notification.show("Erro ao carregar agendamento", 3000, Notification.Position.MIDDLE);
             return;
         }
 
-        // Por enquanto, vamos criar um agendamento de exemplo
-        // Em uma implementação completa, abriria um dialog de criação
-        try {
-            LocalDateTime startTime = (selectedDate != null ? selectedDate : LocalDate.now()).atTime(9, 0);
-            LocalDateTime endTime = startTime.plusHours(1);
-
-            Appointment newAppointment = new Appointment();
-            newAppointment.setTitle("Nova Consulta");
-            newAppointment.setAppointmentDate(startTime);
-            newAppointment.setEndDate(endTime);
-            newAppointment.setDoctor(currentDoctor);
-            // Se tem currentPerson, usa ela como paciente, senão usa nome externo
-            if (currentPerson != null) {
-                newAppointment.setPerson(currentPerson);
-            } else {
-                newAppointment.setExternalPatientName("Pessoa de Exemplo");
-            }
-            newAppointment.setStatus(Appointment.AppointmentStatus.SCHEDULED);
-
-            appointmentService.validateAppointment(newAppointment);
-            appointmentService.save(newAppointment);
-
-            loadAppointments(); // Recarregar o calendário
-            showSuccessNotification("Agendamento criado com sucesso!");
-        } catch (Exception e) {
-            showErrorNotification("Erro ao criar agendamento: " + e.getMessage());
-        }
-    }
-
-    private void openEditAppointmentDialog(Integer appointmentId) {
         try {
             Optional<Appointment> appointmentOpt = appointmentService.findById(appointmentId);
-            if (appointmentOpt.isPresent()) {
-                Appointment appointment = appointmentOpt.get();
-                
-                // Por enquanto, apenas mostra informações
-                // Em uma implementação completa, abriria um dialog de edição
-                String message = String.format("Agendamento: %s\nPaciente: %s\nStatus: %s", 
-                    appointment.getTitle(),
-                    appointment.getDisplayPatientName(),
-                    appointment.getStatus().getDisplayName());
-                
-                Notification.show(message, 3000, Notification.Position.MIDDLE);
+            if (appointmentOpt.isEmpty()) {
+                Notification.show("Agendamento não encontrado", 3000, Notification.Position.MIDDLE);
+                return;
             }
+
+            Appointment appointment = appointmentOpt.get();
+            Doctor doctor = appointment.getDoctor();
+            Person patient = appointment.getPerson();
+
+            StringBuilder content = new StringBuilder();
+            content.append("Detalhes do Agendamento\n\n");
+            
+            if (patient != null) {
+                content.append("Paciente: ").append(patient.getFirstName())
+                       .append(" ").append(patient.getLastName()).append("\n");
+            }
+
+            if (appointment.getDescription() != null && !appointment.getDescription().isEmpty()) {
+                content.append("\nObservações: ").append(appointment.getDescription()).append("\n");
+            }
+
+            content.append("\nStatus: ").append(appointment.getStatus().getDisplayName());
+            
+            AppointmentDialog dialog = new AppointmentDialog(
+                "Detalhes do Agendamento",
+                content.toString(),
+                getDoctors(),
+                appointment.getAppointmentDate(),
+                appointment  // Passa o appointment existente
+            );
+            
+            dialog.showEditButton(true);  
+            dialog.showCancelButton(true);  
+            dialog.showSaveButton(false);  
+            
+            dialog.onEdit(() -> {
+                dialog.showSaveButton(true);
+                dialog.showEditButton(false);
+                
+                // Habilita a edição dos campos de data/hora
+                dialog.onSave(() -> {
+                    try {
+                        // Atualiza apenas as datas do agendamento
+                        appointment.setAppointmentDate(dialog.getStartDateTime());
+                        appointment.setEndDate(dialog.getEndDateTime());
+                        
+                        // Valida e salva o agendamento
+                        appointmentService.validateAppointment(appointment);
+                        Appointment savedAppointment = appointmentService.save(appointment);
+                        
+                        // Atualiza o calendário
+                        calendar.getEntryProvider().asInMemory().removeEntry(clickedEntry);
+                        addAppointmentToCalendar(savedAppointment);
+                        
+                        Notification.show("Agendamento atualizado com sucesso!", 3000, Notification.Position.MIDDLE);
+                    } catch (Exception e) {
+                        Notification.show("Erro ao atualizar agendamento: " + e.getMessage(), 
+                            3000, Notification.Position.MIDDLE);
+                    }
+                });
+            });
+            
+            dialog.onCancel(() -> {
+                try {
+                    // Remove do banco de dados e do calendário
+                    appointmentService.delete(appointmentId);
+                    calendar.getEntryProvider().asInMemory().removeEntry(clickedEntry);
+                    entryToAppointmentId.remove(clickedEntry);
+                    Notification.show("Agendamento cancelado!", 3000, Notification.Position.MIDDLE);
+                } catch (Exception e) {
+                    Notification.show("Erro ao cancelar agendamento: " + e.getMessage(), 
+                        3000, Notification.Position.MIDDLE);
+                }
+            });
+            
+            dialog.open();
         } catch (Exception e) {
-            showErrorNotification("Erro ao abrir agendamento: " + e.getMessage());
+            Notification.show("Erro ao carregar detalhes do agendamento: " + e.getMessage(), 
+                3000, Notification.Position.MIDDLE);
         }
-    }
-
-    private void showSuccessNotification(String message) {
-        Notification notification = Notification.show(message, 3000, Notification.Position.TOP_CENTER);
-        notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-    }
-
-    private void showErrorNotification(String message) {
-        Notification notification = Notification.show(message, 5000, Notification.Position.TOP_CENTER);
-        notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
     }
 } 

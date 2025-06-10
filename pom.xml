@@ -90,9 +90,9 @@
 
         <!-- FullCalendar for Flow -->
         <dependency>
-            <groupId>org.vaadin.stefan</groupId>
-            <artifactId>fullcalendar2</artifactId>
-            <version>6.2.2</version>
+        <groupId>org.vaadin.stefan</groupId>
+        <artifactId>fullcalendar2</artifactId>
+        <version>6.3.0</version>
         </dependency>
 
         <!-- Additional Spring Dependencies -->

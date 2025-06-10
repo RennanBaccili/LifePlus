@@ -5,7 +5,6 @@ import org.dasher.speed.taskmanagement.domain.Person;
 import org.dasher.speed.taskmanagement.domain.Task;
 import org.dasher.speed.taskmanagement.service.PersonService;
 
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Main;
 import com.vaadin.flow.component.textfield.TextField;
@@ -65,6 +64,6 @@ public class DoctorView extends Main {
 
     private void updateList() {
         String searchTerm = filterText.getValue();
-        grid.setItems(personService.searchContacts(searchTerm));
+        grid.setItems(personService.searchDoctorsByName(searchTerm));
     }
 }

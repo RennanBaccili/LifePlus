@@ -29,7 +29,7 @@ public class AppointmentService {
 
     @Transactional(readOnly = true)
     public Optional<Appointment> findById(Integer id) {
-        return appointmentRepository.findById(id);
+        return appointmentRepository.findByIdWithDetails(id);
     }
 
     @Transactional(readOnly = true)
@@ -82,7 +82,7 @@ public class AppointmentService {
 
     @Transactional(readOnly = true)
     public List<Appointment> findAll() {
-        return appointmentRepository.findAll();
+        return appointmentRepository.findAllWithDetails();
     }
 
     // Método utilitário para validar agendamento
