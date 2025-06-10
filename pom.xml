@@ -88,6 +88,13 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- FullCalendar for Flow -->
+        <dependency>
+            <groupId>org.vaadin.stefan</groupId>
+            <artifactId>fullcalendar2</artifactId>
+            <version>6.2.2</version>
+        </dependency>
+
         <!-- Additional Spring Dependencies -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
