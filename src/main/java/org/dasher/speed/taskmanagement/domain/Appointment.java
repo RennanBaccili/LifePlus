@@ -146,6 +146,7 @@ public class Appointment {
 
     // Enum para status do agendamento
     public enum AppointmentStatus {
+        SCHEDULING_REQUEST("Agendamento solicitado"),
         SCHEDULED("Agendado"),
         CONFIRMED("Confirmado"),
         IN_PROGRESS("Em andamento"),

@@ -14,7 +14,6 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import org.dasher.speed.taskmanagement.domain.Person;
 import org.dasher.speed.taskmanagement.domain.Appointment;
 
-import java.time.LocalTime;
 import java.time.LocalDateTime;
 import java.time.Duration;
 import java.util.List;

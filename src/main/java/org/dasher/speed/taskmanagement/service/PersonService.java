@@ -2,7 +2,6 @@ package org.dasher.speed.taskmanagement.service;
 
 import org.dasher.speed.taskmanagement.domain.Person;
 import org.dasher.speed.taskmanagement.domain.User;
-import org.dasher.speed.taskmanagement.domain.Enums.PersonRole;
 import org.dasher.speed.taskmanagement.repository.PersonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

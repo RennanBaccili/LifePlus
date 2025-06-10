@@ -1,11 +1,6 @@
 package org.dasher.speed.taskmanagement.ui.view;
 
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.notification.NotificationVariant;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
@@ -14,11 +9,9 @@ import org.vaadin.stefan.fullcalendar.FullCalendar;
 import org.vaadin.stefan.fullcalendar.FullCalendarBuilder;
 import org.vaadin.stefan.fullcalendar.Entry;
 import org.vaadin.stefan.fullcalendar.CalendarViewImpl;
-import org.vaadin.stefan.fullcalendar.Timezone;
 import org.vaadin.stefan.fullcalendar.TimeslotClickedEvent;
 import org.vaadin.stefan.fullcalendar.EntryClickedEvent;
 
-import org.dasher.speed.base.ui.component.ViewToolbar;
 import org.dasher.speed.taskmanagement.domain.Appointment;
 import org.dasher.speed.taskmanagement.domain.Doctor;
 import org.dasher.speed.taskmanagement.domain.Person;
@@ -27,14 +20,11 @@ import org.dasher.speed.taskmanagement.domain.Enums.PersonRole;
 import org.dasher.speed.taskmanagement.service.AppointmentService;
 import org.dasher.speed.taskmanagement.service.PersonService;
 import org.dasher.speed.taskmanagement.service.UserService;
-import org.dasher.speed.taskmanagement.security.SecurityService;
 import org.dasher.speed.taskmanagement.ui.components.AppointmentDialog;
 
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -103,7 +93,7 @@ public class CalendarView extends VerticalLayout {
         entry.setTitle(appointment.getTitle());
         entry.setStart(appointment.getAppointmentDate());
         entry.setEnd(appointment.getEndDate());
-        entry.setColor("#2196F3"); // Cor padrão para consultas
+        entry.setColor(getColorByStatus(appointment.getStatus())); // Cor padrão para consultas
         
         // Adiciona informações detalhadas na descrição
         StringBuilder description = new StringBuilder();
@@ -182,7 +172,7 @@ public class CalendarView extends VerticalLayout {
                 appointment.setTitle(dialog.getTitle());
                 appointment.setAppointmentDate(dialog.getStartDateTime());
                 appointment.setEndDate(dialog.getEndDateTime());
-                appointment.setStatus(Appointment.AppointmentStatus.SCHEDULED);
+                appointment.setStatus(Appointment.AppointmentStatus.SCHEDULING_REQUEST);
                 appointment.setDoctor(doctor); // Médico selecionado
                 appointment.setPerson(currentPerson); // Pessoa que está agendando
                 
@@ -206,6 +196,20 @@ public class CalendarView extends VerticalLayout {
         });
         
         dialog.open();
+    }
+
+
+    private String getColorByStatus(Appointment.AppointmentStatus status) {
+        switch (status) {
+            case SCHEDULING_REQUEST: return "#FF9800"; // Laranja
+            case SCHEDULED: return "#2196F3"; // Azul
+            case CONFIRMED: return "#4CAF50"; // Verde
+            case IN_PROGRESS: return "#FF9800"; // Laranja
+            case COMPLETED: return "#9E9E9E"; // Cinza
+            case CANCELLED: return "#F44336"; // Vermelho
+            case NO_SHOW: return "#795548"; // Marrom
+            default: return "#2196F3";
+        }
     }
 
     private void handleEntryClick(EntryClickedEvent event) {
