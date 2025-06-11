@@ -19,7 +19,13 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
     List<Appointment> findByDoctor(Doctor doctor);
     
     // Buscar agendamentos onde uma pessoa é paciente
-    List<Appointment> findByPerson(Person person);
+    @Query("SELECT DISTINCT a FROM Appointment a " +
+           "LEFT JOIN FETCH a.doctor d " +
+           "LEFT JOIN FETCH d.person dp " +
+           "LEFT JOIN FETCH a.person p " +
+           "WHERE a.person = :person " +
+           "ORDER BY a.appointmentDate")
+    List<Appointment> findByPerson(@Param("person") Person person);
     
     // Buscar agendamentos por médico em um período específico
     @Query("SELECT a FROM Appointment a WHERE a.doctor = :doctor " +

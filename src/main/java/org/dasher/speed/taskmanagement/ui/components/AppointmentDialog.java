@@ -26,18 +26,17 @@ public class AppointmentDialog extends Dialog {
     private final Button saveButton;
     private Runnable onSave;
     
-    // Campos do formulário
     private final ComboBox<Person> doctorField;
     private final TimePicker startTime;
     private final TimePicker endTime;
     private final TextField titleField;
     private LocalDateTime selectedDate;
 
-    public AppointmentDialog(String title, String content, List<Person> doctors, LocalDateTime initialDateTime) {
-        this(title, content, doctors, initialDateTime, null);
+    public AppointmentDialog(String title, List<Person> doctors, LocalDateTime initialDateTime) {
+        this(title, doctors, initialDateTime, null);
     }
 
-    public AppointmentDialog(String title, String content, List<Person> doctors, LocalDateTime initialDateTime, Appointment existingAppointment) {
+    public AppointmentDialog(String title, List<Person> doctors, LocalDateTime initialDateTime, Appointment existingAppointment) {
         setHeaderTitle(title);
         this.selectedDate = initialDateTime;
         
@@ -47,21 +46,19 @@ public class AppointmentDialog extends Dialog {
         // Campo de título
         titleField = new TextField("Título");
         titleField.setValue(existingAppointment != null ? existingAppointment.getTitle() : "Nova Consulta");
-        
+        titleField.setEnabled(false);
         // Seleção de médico
         doctorField = new ComboBox<>("Médico");
         doctorField.setItems(doctors);
         doctorField.setItemLabelGenerator(person -> 
             person.getFirstName() + " " + person.getLastName());
         
-        // Se for um agendamento existente, seleciona e desabilita o médico
         if (existingAppointment != null) {
             Person doctorPerson = existingAppointment.getDoctor().getPerson();
             doctorField.setValue(doctorPerson);
             doctorField.setReadOnly(true);
         }
         
-        // Seleção de horário
         startTime = new TimePicker("Horário de Início");
         startTime.setValue(initialDateTime.toLocalTime());
         startTime.setStep(Duration.ofMinutes(30));
@@ -78,12 +75,6 @@ public class AppointmentDialog extends Dialog {
         
         // Adiciona os campos ao form
         formLayout.add(titleField, doctorField, startTime, endTime);
-        
-        // Adiciona o conteúdo descritivo se houver
-        if (content != null && !content.isEmpty()) {
-            Span contentText = new Span(content);
-            formLayout.add(contentText);
-        }
         
         // Layout principal
         VerticalLayout dialogLayout = new VerticalLayout();
