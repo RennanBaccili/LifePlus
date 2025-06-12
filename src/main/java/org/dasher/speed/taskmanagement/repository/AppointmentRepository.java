@@ -15,8 +15,13 @@ import java.util.Optional;
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, Integer> {
     
-    // Buscar agendamentos por médico
-    List<Appointment> findByDoctor(Doctor doctor);
+ @Query("SELECT DISTINCT a FROM Appointment a " +
+       "LEFT JOIN FETCH a.doctor d " +
+       "LEFT JOIN FETCH d.person dp " +
+       "LEFT JOIN FETCH a.person p " +
+       "WHERE a.doctor = :doctor " +
+       "ORDER BY a.appointmentDate")
+    List<Appointment> findByDoctor(@Param("doctor") Doctor doctor);
     
     // Buscar agendamentos onde uma pessoa é paciente
     @Query("SELECT DISTINCT a FROM Appointment a " +

@@ -39,14 +39,30 @@ public class CalendarEventHandler {
     }
 
     public void handleTimeslotClick(FullCalendar calendar, TimeslotClickedEvent event, Runnable onSuccess) {
+        handleTimeslotClick(calendar, event, onSuccess, null);
+    }
+
+    public void handleTimeslotClick(FullCalendar calendar, TimeslotClickedEvent event, Runnable onSuccess, Doctor preSelectedDoctor) {
         LocalDateTime clickedDateTime = event.getDateTime();
-        List<Person> doctors = dataManager.getDoctors();
+        List<Person> doctors;
+        
+        if (preSelectedDoctor != null) {
+            doctors = List.of(preSelectedDoctor.getPerson());
+        } else {
+            doctors = dataManager.getDoctors();
+        }
         
         AppointmentDialog dialog = new AppointmentDialog(
             "Novo Agendamento",
             doctors,
             clickedDateTime
         );
+        
+        // If we have a pre-selected doctor, set it
+        if (preSelectedDoctor != null) {
+            dialog.setSelectedDoctor(preSelectedDoctor.getPerson());
+            dialog.getDoctorField().setReadOnly(true); // Prevent changing the doctor
+        }
         
         // Configure buttons for new appointment
         dialog.showEditButton(false);

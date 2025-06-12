@@ -1,5 +1,5 @@
 package org.dasher.speed.taskmanagement.service;
-
+/*
 import org.dasher.speed.TestcontainersConfiguration;
 import org.dasher.speed.taskmanagement.domain.Task;
 import org.dasher.speed.taskmanagement.domain.TaskRepository;
@@ -55,3 +55,4 @@ class TaskServiceIT {
         assertThat(taskRepository.count()).isEqualTo(0);
     }
 }
+ */

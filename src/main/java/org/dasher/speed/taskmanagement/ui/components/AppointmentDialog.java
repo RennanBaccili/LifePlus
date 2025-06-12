@@ -132,6 +132,14 @@ public class AppointmentDialog extends Dialog {
         return doctorField.getValue();
     }
     
+    public ComboBox<Person> getDoctorField() {
+        return doctorField;
+    }
+    
+    public void setSelectedDoctor(Person doctor) {
+        doctorField.setValue(doctor);
+    }
+    
     public String getTitle() {
         return titleField.getValue();
     }
