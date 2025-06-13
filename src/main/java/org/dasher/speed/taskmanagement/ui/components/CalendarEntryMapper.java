@@ -29,12 +29,12 @@ public class CalendarEntryMapper {
         
         // Add detailed information in description
         StringBuilder description = new StringBuilder();
-        description.append("Médico: ").append(appointment.getDoctor().getPerson().getFirstName())
-                  .append(" ").append(appointment.getDoctor().getPerson().getLastName());
+        description.append("Médico: ").append(appointment.getPersonDoctor().getFirstName())
+                  .append(" ").append(appointment.getPersonDoctor().getLastName());
         
-        if (appointment.getPerson() != null) {
-            description.append("\nAgendado por: ").append(appointment.getPerson().getFirstName())
-                      .append(" ").append(appointment.getPerson().getLastName());
+        if (appointment.getPersonPatient() != null) {
+            description.append("\nAgendado por: ").append(appointment.getPersonPatient().getFirstName())
+                      .append(" ").append(appointment.getPersonPatient().getLastName());
         }
         
         if (appointment.getDescription() != null) {

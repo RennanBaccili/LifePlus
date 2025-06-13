@@ -15,7 +15,6 @@ public class Patient {
     @JoinColumn(name = "person_id")
     private Person person;
 
-    // Getters and Setters
     public Integer getId() {
         return id;
     }

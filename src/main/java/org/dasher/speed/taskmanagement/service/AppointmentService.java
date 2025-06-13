@@ -16,15 +16,19 @@ import java.util.Optional;
 public class AppointmentService {
 
     private final AppointmentRepository appointmentRepository;
+    private final NotificationMessageService notificationMessageService;
 
     @Autowired
-    public AppointmentService(AppointmentRepository appointmentRepository) {
-        this.appointmentRepository = appointmentRepository;
+    public AppointmentService(AppointmentRepository appointmentRepository, NotificationMessageService notifcationMessageService) {
+         this.appointmentRepository = appointmentRepository;
+         this.notificationMessageService = notifcationMessageService;
     }
 
     @Transactional
     public Appointment save(Appointment appointment) {
-        return appointmentRepository.save(appointment);
+        var appointmentSaved = appointmentRepository.save(appointment);
+        notificationMessageService.sendNotificationByAppointment(appointmentSaved);
+        return appointmentSaved;
     }
 
     @Transactional(readOnly = true)
@@ -48,19 +52,19 @@ public class AppointmentService {
     }
 
     @Transactional(readOnly = true)
-    public List<Appointment> findByDoctorAndDate(Doctor doctor, LocalDateTime date) {
-        return appointmentRepository.findByDoctorAndDate(doctor, date);
+    public List<Appointment> findByDoctorAndDate(Person person_doctor, LocalDateTime date) {
+        return appointmentRepository.findByDoctorAndDate(person_doctor, date);
     }
 
     @Transactional(readOnly = true)
-    public List<Appointment> findUpcomingByDoctor(Doctor doctor) {
-        return appointmentRepository.findUpcomingByDoctor(doctor, LocalDateTime.now());
+    public List<Appointment> findUpcomingByDoctor(Person person_doctor) {
+        return appointmentRepository.findUpcomingByDoctor(person_doctor, LocalDateTime.now());
     }
 
     @Transactional(readOnly = true)
-    public boolean hasConflictingAppointments(Doctor doctor, LocalDateTime startTime, LocalDateTime endTime, Integer excludeId) {
+    public boolean hasConflictingAppointments(Person person_doctor, LocalDateTime startTime, LocalDateTime endTime, Integer excludeId) {
         List<Appointment> conflicts = appointmentRepository.findConflictingAppointments(
-            doctor, startTime, endTime, excludeId != null ? excludeId : -1);
+            person_doctor, startTime, endTime, excludeId != null ? excludeId : -1);
         return !conflicts.isEmpty();
     }
 
@@ -95,12 +99,12 @@ public class AppointmentService {
         if (appointment.getAppointmentDate().isAfter(appointment.getEndDate())) {
             throw new IllegalArgumentException("Data de início deve ser anterior à data de fim");
         }
-        if (appointment.getDoctor() == null) {
+        if (appointment.getPersonDoctor() == null) {
             throw new IllegalArgumentException("Médico é obrigatório");
         }
         
         Integer excludeId = appointment.getId();
-        if (hasConflictingAppointments(appointment.getDoctor(), 
+        if (hasConflictingAppointments(appointment.getPersonDoctor(), 
                                      appointment.getAppointmentDate(), 
                                      appointment.getEndDate(), 
                                      excludeId)) {

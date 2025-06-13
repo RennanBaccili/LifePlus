@@ -1,6 +1,9 @@
 package org.dasher.speed.taskmanagement.domain;
 
 import jakarta.persistence.*;
+
+import java.util.List;
+
 import org.dasher.speed.taskmanagement.domain.Enums.PersonRole;
 
 @Converter
@@ -56,6 +59,12 @@ public class Person {
 
     @OneToOne(mappedBy = "person", cascade = CascadeType.ALL)
     private Patient patient;
+
+    @OneToMany(mappedBy = "person_doctor")
+    private List<Appointment> appointments_doctor;
+
+    @OneToMany(mappedBy = "person_patient")
+    private List<Appointment> appointments_patient;
 
     // Getters and Setters
     public Integer getId() {
@@ -144,5 +153,21 @@ public class Person {
 
     public void setPatient(Patient patient) {
         this.patient = patient;
+    }
+
+    public List<Appointment> getAppointments_Doctor() {
+        return appointments_doctor;
+    }
+
+    public void setAppointments_Doctor(List<Appointment> appointments) {
+        this.appointments_doctor = appointments;
+    }
+
+    public List<Appointment> getAppointments_Patient() {
+        return appointments_patient;
+    }
+
+    public void setAppointments_Patient(List<Appointment> appointments) {
+        this.appointments_patient = appointments;
     }
 }

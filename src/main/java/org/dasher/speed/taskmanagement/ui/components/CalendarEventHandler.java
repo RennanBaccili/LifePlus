@@ -70,14 +70,9 @@ public class CalendarEventHandler {
                     throw new IllegalArgumentException("Por favor, selecione um médico");
                 }
 
-                Doctor doctor = selectedDoctor.getDoctor();
-                if (doctor == null) {
-                    throw new IllegalArgumentException("Médico selecionado não possui cadastro como doutor");
-                }
-
                 Person currentPerson = personService.getCurrentPerson();
                 
-                Appointment appointment = createNewAppointment(dialog, doctor, currentPerson);
+                Appointment appointment = createNewAppointment(dialog, selectedDoctor, currentPerson);
                 
                 Appointment savedAppointment = dataManager.saveAppointment(appointment);
                 dataManager.addAppointmentToCalendar(calendar, savedAppointment);
@@ -126,14 +121,14 @@ public class CalendarEventHandler {
         }
     }
     
-    private Appointment createNewAppointment(AppointmentDialog dialog, Doctor doctor, Person currentPerson) {
+    private Appointment createNewAppointment(AppointmentDialog dialog, Person person_doctor, Person currentPerson) {
         Appointment appointment = new Appointment();
         appointment.setTitle(dialog.getTitle());
         appointment.setAppointmentDate(dialog.getStartDateTime());
         appointment.setEndDate(dialog.getEndDateTime());
         appointment.setStatus(Appointment.AppointmentStatus.SCHEDULING_REQUEST);
-        appointment.setDoctor(doctor);
-        appointment.setPerson(currentPerson);
+        appointment.setPersonDoctor	(person_doctor);
+        appointment.setPersonPatient(currentPerson);
         
         // Add extra information if the person scheduling is a patient
         if (currentPerson.getRole() == PersonRole.PATIENT) {

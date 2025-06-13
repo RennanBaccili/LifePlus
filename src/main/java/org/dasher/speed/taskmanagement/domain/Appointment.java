@@ -31,15 +31,15 @@ public class Appointment {
     private AppointmentStatus status = AppointmentStatus.SCHEDULED;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "doctor_id", nullable = false)
-    private Doctor doctor;
+    @JoinColumn(name = "person_doctor_id", nullable = false)
+    private Person person_doctor;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "person_id")
-    private Person person; // Qualquer pessoa pode agendar (médico, paciente, etc.)
+    @JoinColumn(name = "person_patient_id")
+    private Person person_patient; 
 
     @Column(name = "external_patient_name")
-    private String externalPatientName; // Para pessoas não cadastradas no sistema
+    private String externalPatientName;
 
     @Column(name = "external_patient_phone")
     private String externalPatientPhone;
@@ -48,11 +48,11 @@ public class Appointment {
     public Appointment() {}
 
     public Appointment(LocalDateTime appointmentDate, LocalDateTime endDate, 
-                      String title, Doctor doctor) {
+                      String title, Person person_doctor) {
         this.appointmentDate = appointmentDate;
         this.endDate = endDate;
         this.title = title;
-        this.doctor = doctor;
+        this.person_doctor = person_doctor;
     }
 
     // Getters e Setters
@@ -104,20 +104,20 @@ public class Appointment {
         this.status = status;
     }
 
-    public Doctor getDoctor() {
-        return doctor;
+    public Person getPersonDoctor() {
+        return person_doctor;
     }
 
-    public void setDoctor(Doctor doctor) {
-        this.doctor = doctor;
+    public void setPersonDoctor(Person person_doctor) {
+        this.person_doctor = person_doctor;
     }
 
-    public Person getPerson() {
-        return person;
+    public Person getPersonPatient() {
+        return person_patient;
     }
 
-    public void setPerson(Person person) {
-        this.person = person;
+    public void setPersonPatient(Person person_patient) {
+        this.person_patient = person_patient;
     }
 
     public String getExternalPatientName() {
@@ -138,8 +138,8 @@ public class Appointment {
 
     // Método utilitário para obter o nome da pessoa agendada
     public String getDisplayPatientName() {
-        if (person != null) {
-            return person.getFirstName() + " " + person.getLastName();
+        if (person_patient != null) {
+            return person_patient.getFirstName() + " " + person_patient.getLastName();
         }
         return externalPatientName != null ? externalPatientName : "Pessoa não informada";
     }

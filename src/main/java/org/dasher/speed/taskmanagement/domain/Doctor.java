@@ -1,8 +1,6 @@
 package org.dasher.speed.taskmanagement.domain;
 
 import jakarta.persistence.*;
-import java.util.List;
-
 @Entity
 @Table(name = "doctors")
 public class Doctor {
@@ -26,9 +24,6 @@ public class Doctor {
 
     @Column(name = "digital_signature")
     private String digitalSignature;
-
-    @OneToMany(mappedBy = "doctor")
-    private List<Appointment> appointments;
 
     // Construtores
     public Doctor() {}
@@ -86,11 +81,5 @@ public class Doctor {
         this.digitalSignature = digitalSignature;
     }
 
-    public List<Appointment> getAppointments() {
-        return appointments;
-    }
 
-    public void setAppointments(List<Appointment> appointments) {
-        this.appointments = appointments;
-    }
 }

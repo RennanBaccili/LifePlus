@@ -53,7 +53,7 @@ public class AppointmentDialog extends Dialog {
             person.getFirstName() + " " + person.getLastName());
         
         if (existingAppointment != null) {
-            Person doctorPerson = existingAppointment.getDoctor().getPerson();
+            Person doctorPerson = existingAppointment.getPersonDoctor();
             doctorField.setValue(doctorPerson);
             doctorField.setReadOnly(true);
         }
