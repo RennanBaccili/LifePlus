@@ -15,26 +15,19 @@ import org.vaadin.stefan.fullcalendar.FullCalendar;
 import org.vaadin.stefan.fullcalendar.TimeslotClickedEvent;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Handles calendar events such as timeslot clicks and entry clicks
- */
 @Component
 public class CalendarEventHandler {
     
     private final CalendarDataManagerService dataManager;
-    private final SecurityService securityService;
     private final PersonService personService;
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     
     public CalendarEventHandler(CalendarDataManagerService dataManager, 
                                SecurityService securityService,
                                PersonService personService) {
         this.dataManager = dataManager;
-        this.securityService = securityService;
         this.personService = personService;
     }
 

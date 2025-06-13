@@ -85,7 +85,6 @@ public class AppointmentService {
         return appointmentRepository.findAllWithDetails();
     }
 
-    // Método utilitário para validar agendamento
     public void validateAppointment(Appointment appointment) throws IllegalArgumentException {
         if (appointment.getAppointmentDate() == null) {
             throw new IllegalArgumentException("Data do agendamento é obrigatória");
@@ -100,7 +99,6 @@ public class AppointmentService {
             throw new IllegalArgumentException("Médico é obrigatório");
         }
         
-        // Verificar conflitos de horário
         Integer excludeId = appointment.getId();
         if (hasConflictingAppointments(appointment.getDoctor(), 
                                      appointment.getAppointmentDate(), 

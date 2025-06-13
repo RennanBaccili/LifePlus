@@ -21,7 +21,6 @@ import org.dasher.speed.taskmanagement.domain.User;
 import org.dasher.speed.taskmanagement.domain.Doctor;
 import org.dasher.speed.taskmanagement.domain.Patient;
 import org.dasher.speed.taskmanagement.domain.Enums.PersonRole;
-import org.dasher.speed.taskmanagement.security.SecurityService;
 import org.dasher.speed.taskmanagement.service.PersonService;
 import org.dasher.speed.taskmanagement.service.UserService;
 import com.vaadin.flow.component.select.Select;
@@ -34,7 +33,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class PersonView extends VerticalLayout {
     private final PersonService personService;
     private final UserService userService;
-    private final SecurityService securityService;
 
     private final BeanValidationBinder<Person> personBinder = new BeanValidationBinder<>(Person.class);
     private final BeanValidationBinder<User> userBinder = new BeanValidationBinder<>(User.class);
@@ -68,10 +66,9 @@ public class PersonView extends VerticalLayout {
 
     private final FormLayout formLayout = new FormLayout();
 
-    public PersonView(PersonService personService, UserService userService, SecurityService securityService) {
+    public PersonView(PersonService personService, UserService userService) {
         this.personService = personService;
         this.userService = userService;
-        this.securityService = securityService;
 
         setupLayout();
         configureFields();

@@ -23,7 +23,7 @@ import jakarta.annotation.security.PermitAll;
 @Route("Doctor")
 @PageTitle("Doctors List")
 @Menu(order = 0, icon = "vaadin:user", title = "Doctors List")
-@PermitAll // When security is enabled, allow all authenticated users
+@PermitAll 
 public class DoctorView extends Main {
 
     private final PersonService personService;
@@ -41,7 +41,7 @@ public class DoctorView extends Main {
 
         setupToolbar();
         configureGrid();
-        updateList(); // Load initial data
+        updateList(); 
 
         setSizeFull();
         addClassNames(LumoUtility.BoxSizing.BORDER, LumoUtility.Display.FLEX, LumoUtility.FlexDirection.COLUMN,

@@ -7,6 +7,7 @@ import com.vaadin.flow.router.Route;
 import org.vaadin.stefan.fullcalendar.FullCalendar;
 import org.vaadin.stefan.fullcalendar.FullCalendarBuilder;
 import org.vaadin.stefan.fullcalendar.CalendarViewImpl;
+import org.dasher.speed.base.ui.component.ViewToolbar;
 import org.dasher.speed.taskmanagement.service.CalendarDataManagerService;
 import org.dasher.speed.taskmanagement.ui.components.CalendarEventHandler;
 
@@ -29,20 +30,15 @@ public class CalendarView extends VerticalLayout {
     public CalendarView(CalendarDataManagerService dataManager, CalendarEventHandler eventHandler) {
         this.dataManager = dataManager;
         this.eventHandler = eventHandler;
-        
         setSizeFull();
         
-        // Initialize and configure calendar
         this.calendar = createAndConfigureCalendar();
-        
-        // Setup UI layout
+        setupToolbar();
         setupLayout();
         
-        // Setup event listeners
         setupEventListeners();
         
-        // Load existing appointments
-        dataManager.loadExistingAppointments(calendar);
+        this.dataManager.loadExistingAppointments(calendar);
     }
 
     /**
@@ -82,4 +78,10 @@ public class CalendarView extends VerticalLayout {
     private void refreshCalendar() {
         calendar.getEntryProvider().asInMemory().refreshAll();
     }
+
+    private void setupToolbar() { 
+        var toolbar = new ViewToolbar("My Calendar", ViewToolbar.group());
+        add(toolbar);
+    }
+
 } 

@@ -101,7 +101,7 @@ public class RegisterView extends VerticalLayout {
     private void registerUser() {
         try {
             User newUser = createUser();
-            User registeredUser = userService.register(newUser);
+            userService.register(newUser);
             handleSuccessfulRegistration();
         } catch (Exception e) {
             showNotification("Registration failed: " + e.getMessage());

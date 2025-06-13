@@ -1,7 +1,6 @@
 package org.dasher.speed.taskmanagement.security;
 
 import org.dasher.speed.taskmanagement.ui.view.LoginView;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,15 +19,12 @@ import com.vaadin.flow.spring.security.VaadinWebSecurity;
 @Configuration
 public class SecurityConfiguration extends VaadinWebSecurity {
 
-    private final ApplicationContext applicationContext;
     private final CorsConfigurationSource corsConfigurationSource;
     private final CsrfTokenRepository csrfTokenRepository;
 
     public SecurityConfiguration(
-            ApplicationContext applicationContext,
             CorsConfigurationSource corsConfigurationSource,
             CsrfTokenRepository csrfTokenRepository) {
-        this.applicationContext = applicationContext;
         this.corsConfigurationSource = corsConfigurationSource;
         this.csrfTokenRepository = csrfTokenRepository;
     }
