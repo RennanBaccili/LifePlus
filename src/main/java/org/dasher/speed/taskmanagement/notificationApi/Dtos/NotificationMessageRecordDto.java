@@ -6,6 +6,7 @@ import org.dasher.speed.taskmanagement.notificationApi.Dtos.enums.NotificationSt
 public record NotificationMessageRecordDto(
     Long senderId,
     Long receiverId,
+    Long appointmentId,
     String title,
     String message,
     boolean read,

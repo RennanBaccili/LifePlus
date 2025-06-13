@@ -25,6 +25,7 @@ public class NotificationMessageService {
         var NotificationMessage = new NotificationMessage();
         NotificationMessage.setSenderId(appointment.getPersonPatient().getId().longValue());
         NotificationMessage.setReceiverId(appointment.getPersonDoctor().getId().longValue());   
+        NotificationMessage.setAppointmentId(appointment.getId().longValue());
         NotificationMessage.setTitle("Requisição de agendamento"); 
         NotificationMessage.setRead(false); 
         NotificationMessage = setMessageAndStatusByAppointment(NotificationMessage, appointment);
@@ -33,6 +34,7 @@ public class NotificationMessageService {
         return new NotificationMessageRecordDto(
             NotificationMessage.getSenderId(),
             NotificationMessage.getReceiverId(),
+            NotificationMessage.getAppointmentId(),
             NotificationMessage.getTitle(),
             NotificationMessage.getMessage(),
             NotificationMessage.isRead(),

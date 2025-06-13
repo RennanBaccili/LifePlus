@@ -9,6 +9,7 @@ public class NotificationMessage {
     private long Id;
     private long senderId;
     private long receiverId; 
+    private long appointmentId; 
     private String title; 
     private String message;
     private boolean read;
@@ -20,10 +21,11 @@ public class NotificationMessage {
     // Construtores
     public NotificationMessage() {}
     
-    public NotificationMessage(long Id, long senderId, long receiverId, String title, String message, boolean read, NotificationStatusEnum notificationStatusEnum, LocalDateTime createdAt) {
+    public NotificationMessage(long Id, long senderId, long receiverId, long appointmentId, String title, String message, boolean read, NotificationStatusEnum notificationStatusEnum, LocalDateTime createdAt) {
         this.Id = Id;
         this.senderId = senderId;
         this.receiverId = receiverId;
+        this.appointmentId = appointmentId;
         this.title = title;
         this.message = message;
         this.read = read;
@@ -54,6 +56,14 @@ public class NotificationMessage {
     
     public void setReceiverId(long receiverId) {
         this.receiverId = receiverId;
+    }
+    
+    public long getAppointmentId() {
+        return appointmentId;
+    }
+    
+    public void setAppointmentId(long appointmentId) {
+        this.appointmentId = appointmentId;
     }
     
     public String getTitle() {
