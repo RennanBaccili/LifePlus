@@ -81,7 +81,7 @@ public class CalendarDataManagerService {
     }
     
     public Optional<Appointment> findAppointmentById(Integer id) {
-        return appointmentService.findById(id);
+        return appointmentService.getAppointmentById(id);
     }
     
     public void deleteAppointment(Integer id) {

@@ -4,7 +4,6 @@ import org.dasher.speed.taskmanagement.domain.Person;
 import org.dasher.speed.taskmanagement.domain.User;
 import org.dasher.speed.taskmanagement.repository.PersonRepository;
 import org.dasher.speed.taskmanagement.security.SecurityService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,7 +16,6 @@ public class PersonService {
     private final PersonRepository personRepository;
     private final SecurityService securityService;
 
-    @Autowired
     public PersonService(PersonRepository personRepository, SecurityService securityService) {
         this.personRepository = personRepository;
         this.securityService = securityService;

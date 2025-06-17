@@ -31,8 +31,14 @@ public class AppointmentService {
         return appointmentSaved;
     }
 
+    @Transactional
+    public Appointment updateAppointment(Appointment appointment) {
+        var appointmentSaved = appointmentRepository.save(appointment);
+        return appointmentSaved;
+    }
+
     @Transactional(readOnly = true)
-    public Optional<Appointment> findById(Integer id) {
+    public Optional<Appointment> getAppointmentById(Integer id) {
         return appointmentRepository.findByIdWithDetails(id);
     }
 
@@ -75,7 +81,7 @@ public class AppointmentService {
 
     @Transactional
     public Appointment updateStatus(Integer appointmentId, Appointment.AppointmentStatus newStatus) {
-        Optional<Appointment> appointmentOpt = findById(appointmentId);
+        Optional<Appointment> appointmentOpt = getAppointmentById(appointmentId);
         if (appointmentOpt.isPresent()) {
             Appointment appointment = appointmentOpt.get();
             appointment.setStatus(newStatus);

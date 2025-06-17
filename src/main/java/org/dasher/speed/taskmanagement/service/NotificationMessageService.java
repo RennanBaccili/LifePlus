@@ -16,6 +16,22 @@ public class NotificationMessageService {
         this.notificationMessageController = notificationMessageController;
     }
 
+
+    public void sendNotificationConfirmation(boolean isAccepted, Long appointmentId) {
+        // TODO:  refatorar essa lógica
+        /*
+        var appointment = appointmentService.getAppointmentById(appointmentId.intValue());
+        if (appointment.isPresent()) {
+            if (isAccepted) {
+                appointment.get().setStatus(Appointment.AppointmentStatus.SCHEDULED);
+            } else {
+                appointment.get().setStatus(Appointment.AppointmentStatus.CANCELLED);
+            }
+            appointmentService.updateAppointment(appointment.get());
+        }
+             */
+    }
+
     public void sendNotificationByAppointment(Appointment appointment) {
         var notificationMessageRecordDto = setNotificationMessageByAppointment(appointment);
         notificationMessageController.sendNotification(notificationMessageRecordDto);
@@ -47,7 +63,15 @@ public class NotificationMessageService {
 
         if (appointment.getStatus() == Appointment.AppointmentStatus.SCHEDULING_REQUEST) {
             notificationMessage.setNotificationStatusEnum(NotificationStatusEnum.ACTION_REQUIRED);
-            message = "O usuario " + appointment.getPersonPatient().getFirstName() + " solicitou um agendamento com o medico " + appointment.getPersonPatient().getFirstName() + " para o dia " + appointment.getAppointmentDate();
+            message = "O usuario " + appointment.getPersonPatient().getFirstName() + " solicitou um agendamento com vc ";
+        }
+        if (appointment.getStatus() == Appointment.AppointmentStatus.CONFIRMED) {
+            notificationMessage.setNotificationStatusEnum(NotificationStatusEnum.ACTION_REQUIRED);
+            message = "O Consulta número: " + appointment.getId() + " foi agendada com sucesso";
+        }
+        if (appointment.getStatus() == Appointment.AppointmentStatus.CANCELLED) {
+            notificationMessage.setNotificationStatusEnum(NotificationStatusEnum.ACTION_REQUIRED);
+            message = "A consulta número: " + appointment.getId() + " foi cancelada";
         }
 
         notificationMessage.setMessage(message);
