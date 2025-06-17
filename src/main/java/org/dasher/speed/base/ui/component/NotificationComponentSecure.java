@@ -2,8 +2,10 @@ package org.dasher.speed.base.ui.component;
 
 import java.util.Arrays;
 
+import org.dasher.speed.taskmanagement.domain.User;
 import org.dasher.speed.taskmanagement.notificationApi.Service.NotificationClientService;
-import org.dasher.speed.taskmanagement.service.PersonService;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
@@ -11,23 +13,19 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.dom.Element;
 import com.vaadin.flow.dom.Style;
 
-public class NotificationComponent {
+public class NotificationComponentSecure {
     
     private final NotificationClientService notificationClientService;
-    private final PersonService personService;
     private final MessagesButton bellButton;
 
-    public NotificationComponent() {
-        // Acessa os beans Spring através do helper
+    public NotificationComponentSecure() {
         this.notificationClientService = new NotificationClientService();
-        this.personService = SpringContextHelper.getBean(PersonService.class);
         this.bellButton = createNotificationButton();
 
         updateNotifications();
     }
 
     public MessagesButton getNotificationButton() {
-        
         return this.bellButton;
     }
     
@@ -44,17 +42,31 @@ public class NotificationComponent {
     
     public void updateNotifications() {
         try {
-            var person = personService.getCurrentPerson();
-            var notifications = notificationClientService.getCountNotificationsByReceiverId(person.getId().longValue());
-            bellButton.setUnreadMessages(notifications);
+            // Pega o usuário diretamente do contexto de segurança
+            User currentUser = getCurrentUser();
+            if (currentUser != null) {
+                // Aqui você pode usar o ID do User diretamente 
+                // ou buscar a Person associada se necessário
+                var notifications = notificationClientService.getCountNotificationsByReceiverId(currentUser.getId().longValue());
+                bellButton.setUnreadMessages(notifications);
+            } else {
+                bellButton.setUnreadMessages(0);
+            }
         } catch (Exception e) {
-            // Em caso de erro, define 0 notificações
             bellButton.setUnreadMessages(0);
         }
     }
+    
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated() 
+            && authentication.getPrincipal() instanceof User) {
+            return (User) authentication.getPrincipal();
+        }
+        return null;
+    }
 
-
-    private static class MessagesButton extends Button {
+    public static class MessagesButton extends Button {
         private final Element numberOfNotifications;
 
         public MessagesButton() {
@@ -76,4 +88,4 @@ public class NotificationComponent {
             }
         }
     }
-}
+} 

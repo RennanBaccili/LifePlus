@@ -11,7 +11,7 @@ import org.dasher.speed.taskmanagement.domain.NotificationMessage;
 public class NotificationClientService {
 
     private final RestTemplate restTemplate = new RestTemplate();
-    private final String url = "http://localhost:8083/api/notifications";
+    private final String url = "http://localhost:8080/notification/api/notifications";
     
     public List<NotificationMessage> getAllNotificationsByReceiverId(Long ReceiverId) {
         String url = UriComponentsBuilder

@@ -38,8 +38,8 @@ public final class ViewToolbar extends Composite<Header> {
      
 
     public void getNotificationButton() {
-        var notifcation = notificationComponent.getNotificationButton();
-        getContent().add(notifcation);
+        var notification = notificationComponent.getNotificationButton();
+        getContent().add(notification);
     }
 
     public static Component group(Component... components) {

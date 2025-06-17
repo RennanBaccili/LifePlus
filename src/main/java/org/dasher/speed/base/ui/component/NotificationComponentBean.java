@@ -4,6 +4,8 @@ import java.util.Arrays;
 
 import org.dasher.speed.taskmanagement.notificationApi.Service.NotificationClientService;
 import org.dasher.speed.taskmanagement.service.PersonService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
@@ -11,27 +13,19 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.dom.Element;
 import com.vaadin.flow.dom.Style;
 
-public class NotificationComponent {
+@Component
+public class NotificationComponentBean {
     
     private final NotificationClientService notificationClientService;
     private final PersonService personService;
-    private final MessagesButton bellButton;
 
-    public NotificationComponent() {
-        // Acessa os beans Spring através do helper
+    @Autowired
+    public NotificationComponentBean(PersonService personService) {
         this.notificationClientService = new NotificationClientService();
-        this.personService = SpringContextHelper.getBean(PersonService.class);
-        this.bellButton = createNotificationButton();
-
-        updateNotifications();
+        this.personService = personService;
     }
 
-    public MessagesButton getNotificationButton() {
-        
-        return this.bellButton;
-    }
-    
-    private MessagesButton createNotificationButton() {
+    public MessagesButton createNotificationButton() {
         MessagesButton bellBtn = new MessagesButton();
         
         ContextMenu menu = new ContextMenu();
@@ -39,22 +33,22 @@ public class NotificationComponent {
         menu.setTarget(bellBtn);
         menu.addItem("My Notifications");
         
+        updateNotifications(bellBtn);
+        
         return bellBtn;
     }
     
-    public void updateNotifications() {
+    public void updateNotifications(MessagesButton bellButton) {
         try {
             var person = personService.getCurrentPerson();
             var notifications = notificationClientService.getCountNotificationsByReceiverId(person.getId().longValue());
             bellButton.setUnreadMessages(notifications);
         } catch (Exception e) {
-            // Em caso de erro, define 0 notificações
             bellButton.setUnreadMessages(0);
         }
     }
 
-
-    private static class MessagesButton extends Button {
+    public static class MessagesButton extends Button {
         private final Element numberOfNotifications;
 
         public MessagesButton() {
@@ -76,4 +70,4 @@ public class NotificationComponent {
             }
         }
     }
-}
+} 
