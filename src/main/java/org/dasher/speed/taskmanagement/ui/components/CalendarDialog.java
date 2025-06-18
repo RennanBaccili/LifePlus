@@ -107,7 +107,7 @@ public class CalendarDialog extends Dialog {
         }
         
         calendar.addEntryClickedListener(event -> 
-            eventHandler.handleEntryClick(calendar, event, this::refreshCalendar));
+            eventHandler.handleEntryCalendarClick(calendar, event, this::refreshCalendar));
     }
     
     private void loadAppointments() {

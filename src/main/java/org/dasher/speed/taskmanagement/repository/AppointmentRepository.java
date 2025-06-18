@@ -39,6 +39,14 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
                                                @Param("startDate") LocalDateTime startDate,
                                                @Param("endDate") LocalDateTime endDate);
     
+    @Query("SELECT a FROM Appointment a " +
+           "LEFT JOIN FETCH a.person_patient pp " +
+           "WHERE pp IS NOT NULL " +
+           "AND pp.role = org.dasher.speed.taskmanagement.domain.Enums.PersonRole.PATIENT " +
+           "AND (LOWER(pp.firstName) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+           "LOWER(pp.lastName) LIKE LOWER(CONCAT('%', :searchTerm, '%')))")
+    List<Appointment> searchAppointmentsByPatient(@Param("searchTerm") String searchTerm);
+
     // Buscar agendamentos por médico em uma data específica
     @Query("SELECT a FROM Appointment a WHERE a.person_doctor = :person_doctor " +
            "AND DATE(a.appointmentDate) = DATE(:date) " +

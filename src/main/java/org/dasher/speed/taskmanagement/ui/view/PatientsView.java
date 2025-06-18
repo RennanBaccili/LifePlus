@@ -24,9 +24,9 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
 
-@Route("Patients")
+@Route("patients")
 @PageTitle("Pacientes | LifePlus")
-@Menu(order = 1, icon = "vaadin:user-heart", title = "Pacientes")
+@Menu(order = 1, icon = "vaadin:user-heart", title = "Patients")
 @RolesAllowed({"USER", "ADMIN"})
 public class PatientsView extends VerticalLayout {
     

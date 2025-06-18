@@ -1,5 +1,7 @@
 package org.dasher.speed.taskmanagement.ui.components;
 
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.notification.Notification;
 import org.dasher.speed.taskmanagement.domain.Appointment;
 import org.dasher.speed.taskmanagement.domain.Doctor;
@@ -126,7 +128,7 @@ public class CalendarEventHandler {
         dialog.open();
     }
     
-    public void handleEntryClick(FullCalendar calendar, EntryClickedEvent event, Runnable onSuccess) {
+    public void handleEntryCalendarClick(FullCalendar calendar, EntryClickedEvent event, Runnable onSuccess) {
         Entry clickedEntry = event.getEntry();
         Integer appointmentId = dataManager.getAppointmentId(clickedEntry);
         
@@ -135,6 +137,15 @@ public class CalendarEventHandler {
             return;
         }
 
+        handleAppointmentClick(appointmentId, calendar, clickedEntry, onSuccess);
+    }
+    
+    public void handleEntryGridClick(Grid<Appointment> grid, ItemClickEvent<Appointment> event, Runnable onSuccess) {
+        Appointment appointment = event.getItem();
+        handleAppointmentClick(appointment.getId(), null, null, onSuccess);
+    }
+
+    private void handleAppointmentClick(Integer appointmentId, FullCalendar calendar, Entry clickedEntry, Runnable onSuccess) {
         try {
             Optional<Appointment> appointmentOpt = dataManager.findAppointmentById(appointmentId);
             if (appointmentOpt.isEmpty()) {
@@ -151,14 +162,21 @@ public class CalendarEventHandler {
                 appointment
             );
             
-            configureExistingAppointmentDialog(calendar, dialog, appointment, clickedEntry, onSuccess);
+            if (calendar != null && clickedEntry != null) {
+                // Vem do calendar - permite todas as operações
+                configureExistingAppointmentDialog(calendar, dialog, appointment, clickedEntry, onSuccess);
+            } else {
+                // Vem da grid - apenas visualização (sem edição por enquanto)
+                configureViewOnlyAppointmentDialog(dialog, appointment);
+            }
+            
             dialog.open();
         } catch (Exception e) {
             Notification.show("Erro ao carregar detalhes do agendamento: " + e.getMessage(), 
                 3000, Notification.Position.MIDDLE);
         }
     }
-    
+
     private Appointment createNewAppointment(AppointmentDialog dialog, Person person_doctor, Person currentPerson) {
         Appointment appointment = new Appointment();
         appointment.setTitle(dialog.getTitle());
@@ -187,6 +205,25 @@ public class CalendarEventHandler {
         appointment.setDescription("Agendado pelo médico para: " + patient.getFirstName() + " " + patient.getLastName());
         
         return appointment;
+    }
+    
+    private void configureViewOnlyAppointmentDialog(AppointmentDialog dialog, Appointment appointment) {
+        // Configurar dialog para visualização com opções limitadas
+        dialog.showEditButton(false);  
+        dialog.showCancelButton(true);  // Permite cancelar mesmo da grid
+        dialog.showSaveButton(false);
+        
+        // Configure cancel action (mesma funcionalidade, mas sem calendar)
+        dialog.onCancel(() -> {
+            try {
+                dataManager.deleteAppointment(appointment.getId());
+                Notification.show("Agendamento cancelado!", 3000, Notification.Position.MIDDLE);
+                // Note: no calendar update since we're not in calendar view
+            } catch (Exception e) {
+                Notification.show("Erro ao cancelar agendamento: " + e.getMessage(), 
+                    3000, Notification.Position.MIDDLE);
+            }
+        });
     }
     
     private void configureExistingAppointmentDialog(FullCalendar calendar, AppointmentDialog dialog, 

@@ -17,9 +17,9 @@ import jakarta.annotation.security.RolesAllowed;
  * Calendar view for managing appointments
  * This view is now focused only on UI setup and coordination between components
  */
-@Route("Calendar")
+@Route("calendar")
 @PageTitle("Minha Agenda | LifePlus")
-@Menu(order = 1, icon = "vaadin:calendar", title = "Minha Agenda")
+@Menu(order = 3, icon = "vaadin:calendar", title = "Minha Agenda")
 @RolesAllowed({"USER", "ADMIN"})
 public class CalendarView extends VerticalLayout {
 
@@ -69,7 +69,7 @@ public class CalendarView extends VerticalLayout {
         
         // Add listener for existing entry clicks (view/edit appointment)
         calendar.addEntryClickedListener(event -> 
-            eventHandler.handleEntryClick(calendar, event, this::refreshCalendar));
+            eventHandler.handleEntryCalendarClick(calendar, event, this::refreshCalendar));
     }
 
     /**

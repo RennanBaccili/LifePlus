@@ -170,4 +170,17 @@ public class Person {
     public void setAppointments_Patient(List<Appointment> appointments) {
         this.appointments_patient = appointments;
     }
+
+    @Override
+    public String toString() {
+        if (firstName != null && lastName != null) {
+            return firstName + " " + lastName;
+        } else if (firstName != null) {
+            return firstName;
+        } else if (lastName != null) {
+            return lastName;
+        } else {
+            return "Nome não informado";
+        }
+    }
 }

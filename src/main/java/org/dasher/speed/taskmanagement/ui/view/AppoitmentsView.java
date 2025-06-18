@@ -2,8 +2,10 @@ package org.dasher.speed.taskmanagement.ui.view;
 
 import org.dasher.speed.base.ui.component.ViewToolbar;
 import org.dasher.speed.taskmanagement.domain.Person;
+import org.dasher.speed.taskmanagement.domain.Appointment;
 import org.dasher.speed.taskmanagement.domain.Doctor;
 import org.dasher.speed.taskmanagement.service.PersonService;
+import org.dasher.speed.taskmanagement.service.AppointmentService;
 import org.dasher.speed.taskmanagement.service.CalendarDataManagerService;
 import org.dasher.speed.taskmanagement.ui.components.CalendarDialog;
 import org.dasher.speed.taskmanagement.ui.components.CalendarEventHandler;
@@ -22,22 +24,23 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
+import java.time.format.DateTimeFormatter;
 
 
-@Route("doctor")
-@PageTitle("Doctors List")
-@Menu(order = 4, icon = "vaadin:user", title = "Doctors List")
+@Route("appointments")
+@PageTitle("Appointments  | LifePlus")
+@Menu(order = 2, icon = "vaadin:user", title = "Appointments")
 @PermitAll 
-public class DoctorView extends VerticalLayout {
+public class AppoitmentsView extends VerticalLayout {
 
-    private final PersonService personService;
+    private final AppointmentService appointmentService;
     private final CalendarDataManagerService dataManager;
     private final CalendarEventHandler eventHandler;
     private final TextField filterText;
-    private final Grid<Person> grid;
+    private final Grid<Appointment> grid;
 
-    public DoctorView(PersonService personService, CalendarDataManagerService dataManager, CalendarEventHandler eventHandler) {
-        this.personService = personService;
+    public AppoitmentsView(AppointmentService appointmentService, CalendarDataManagerService dataManager, CalendarEventHandler eventHandler) {
+        this.appointmentService = appointmentService;
         this.dataManager = dataManager;
         this.eventHandler = eventHandler;
         this.filterText = new TextField();
@@ -45,6 +48,7 @@ public class DoctorView extends VerticalLayout {
 
         setupToolbar();
         configureGrid();
+        setupEventListeners();
         updateList(); 
 
         setSizeFull();
@@ -53,67 +57,56 @@ public class DoctorView extends VerticalLayout {
     }
 
     private void setupToolbar() {
-        filterText.setPlaceholder("Filter by name...");
-        filterText.setAriaLabel("Filter by name");
+        filterText.setPlaceholder("Filtrar por nome do paciente...");
+        filterText.setAriaLabel("Filtrar por nome do paciente");
         filterText.setMinWidth("20em");
         filterText.setClearButtonVisible(true);
         filterText.setValueChangeMode(ValueChangeMode.LAZY);
         filterText.addValueChangeListener(e -> updateList());
-        add(new ViewToolbar("Doctors List", ViewToolbar.group(filterText)));
+        add(new ViewToolbar("Lista de Agendamentos", ViewToolbar.group(filterText)));
     }
 
     private void configureGrid() {
         grid.setSizeFull();
         grid.addClassName("contact-grid");
-        grid.addColumn(Person::getFirstName).setHeader("First Name");
-        grid.addColumn(Person::getLastName).setHeader("Last Name");
-        grid.addColumn(Person::getPhone).setHeader("Phone");
-        grid.addColumn(Person::getRole).setHeader("Role");
-        grid.getColumns().forEach(col -> col.setAutoWidth(true));
+        grid.addColumn(appointment -> {
+            Person doctor = appointment.getPersonDoctor();
+            return doctor != null ? doctor.getFirstName() + " " + doctor.getLastName() : "N/A";
+        }).setHeader("Médico");
         
-        // Add calendar action column
-        grid.addComponentColumn(this::createCalendarButton)
-            .setHeader("Agenda")
-            .setWidth("120px")
-            .setFlexGrow(0);
+        grid.addColumn(appointment -> {
+            Person patient = appointment.getPersonPatient();
+            return patient != null ? patient.getFirstName() + " " + patient.getLastName() : "Paciente externo";
+        }).setHeader("Paciente");
+        
+        grid.addColumn(appointment -> {
+            return appointment.getAppointmentDate() != null ? 
+                appointment.getAppointmentDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) : "N/A";
+        }).setHeader("Data e Hora");
+        
+        grid.addColumn(appointment -> {
+            return appointment.getStatus() != null ? 
+                appointment.getStatus().getDisplayName() : "N/A";
+        }).setHeader("Status");
+        
+        grid.getColumns().forEach(col -> col.setAutoWidth(true));
         
         add(grid);
     }
 
-    private Button createCalendarButton(Person doctor) {
-        Button calendarButton = new Button();
-        calendarButton.setIcon(VaadinIcon.CALENDAR.create());
-        calendarButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
-        calendarButton.setTooltipText("Ver agenda de " + doctor.getFirstName());
-        calendarButton.addClickListener(e -> openDoctorCalendar(doctor));
-        return calendarButton;
+    private void setupEventListeners() {
+        // Add listener for existing entry clicks (view/edit appointment)
+        grid.addItemClickListener(event -> 
+            eventHandler.handleEntryGridClick(grid, event, this::updateList));
     }
 
     private void updateList() {
-        String searchTerm = filterText.getValue();
-        grid.setItems(personService.searchDoctorsByName(searchTerm));
-    }
-    
-    private void openDoctorCalendar(Person selectedDoctor) {
-        try {
-            Doctor doctor = validateDoctor(selectedDoctor);
-            if (doctor == null) return;
-            
-            CalendarDialog dialog = new CalendarDialog(doctor, dataManager, eventHandler);
-            dialog.open();
-            
+        try {	
+            String searchTerm = filterText.getValue();
+            grid.setItems(appointmentService.searchAppointmentsByPatient(searchTerm));
         } catch (Exception e) {
-            showErrorNotification("Erro ao abrir agenda do médico", e.getMessage());
+            showErrorNotification("Erro ao atualizar lista de agendamentos", e.getMessage());
         }
-    }
-
-    private Doctor validateDoctor(Person selectedDoctor) {
-        Doctor doctor = selectedDoctor.getDoctor();
-        if (doctor == null) {
-            showErrorNotification("Validação", "Esta pessoa não possui perfil de médico");
-            return null;
-        }
-        return doctor;
     }
 
     private void showErrorNotification(String title, String message) {

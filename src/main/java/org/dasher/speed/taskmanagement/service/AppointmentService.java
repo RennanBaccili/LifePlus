@@ -54,6 +54,14 @@ public class AppointmentService {
     }
 
     @Transactional(readOnly = true)
+    public List<Appointment> searchAppointmentsByPatient(String searchTerm) {
+        if (searchTerm == null || searchTerm.trim().isEmpty()) {
+            return appointmentRepository.findAll();
+        }
+        return appointmentRepository.searchAppointmentsByPatient(searchTerm);
+    }
+
+    @Transactional(readOnly = true)
     public List<Appointment> findByDoctorAndDateRange(Doctor doctor, LocalDateTime startDate, LocalDateTime endDate) {
         return appointmentRepository.findByDoctorAndDateRange(doctor, startDate, endDate);
     }
