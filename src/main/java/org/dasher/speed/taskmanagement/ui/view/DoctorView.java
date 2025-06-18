@@ -5,11 +5,14 @@ import org.dasher.speed.taskmanagement.domain.Person;
 import org.dasher.speed.taskmanagement.domain.Doctor;
 import org.dasher.speed.taskmanagement.service.PersonService;
 import org.dasher.speed.taskmanagement.service.CalendarDataManagerService;
-import org.dasher.speed.taskmanagement.ui.components.DoctorCalendarDialog;
+import org.dasher.speed.taskmanagement.ui.components.CalendarDialog;
 import org.dasher.speed.taskmanagement.ui.components.CalendarEventHandler;
 
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Main;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.data.value.ValueChangeMode;
@@ -67,9 +70,22 @@ public class DoctorView extends Main {
         grid.addColumn(Person::getRole).setHeader("Role");
         grid.getColumns().forEach(col -> col.setAutoWidth(true));
         
-        grid.addItemClickListener(item -> openDoctorCalendar(item.getItem()));
+        // Add calendar action column
+        grid.addComponentColumn(this::createCalendarButton)
+            .setHeader("Agenda")
+            .setWidth("120px")
+            .setFlexGrow(0);
         
         add(grid);
+    }
+
+    private Button createCalendarButton(Person doctor) {
+        Button calendarButton = new Button();
+        calendarButton.setIcon(VaadinIcon.CALENDAR.create());
+        calendarButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
+        calendarButton.setTooltipText("Ver agenda de " + doctor.getFirstName());
+        calendarButton.addClickListener(e -> openDoctorCalendar(doctor));
+        return calendarButton;
     }
 
     private void updateList() {
@@ -82,7 +98,7 @@ public class DoctorView extends Main {
             Doctor doctor = validateDoctor(selectedDoctor);
             if (doctor == null) return;
             
-            DoctorCalendarDialog dialog = new DoctorCalendarDialog(doctor, dataManager, eventHandler);
+            CalendarDialog dialog = new CalendarDialog(doctor, dataManager, eventHandler);
             dialog.open();
             
         } catch (Exception e) {

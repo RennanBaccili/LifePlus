@@ -71,6 +71,7 @@ public class NotificationView  extends VerticalLayout {
     }
 
     private void updateList() {
+        // TODO: find by notification
         String searchTerm = filterText.getValue();
         var notifications = notificationClientService.getAllNotificationsByReceiverId(1L);
         notifications.sort(Comparator.comparing(NotificationMessage::getCreatedAt).reversed());
@@ -83,9 +84,8 @@ public class NotificationView  extends VerticalLayout {
             notificationClientService.updateNotification(selectedNotification);
             updateList();
 
-            if(selectedNotification.getNotificationStatusEnum() == NotificationStatusEnum.ACTION_REQUIRED) {
-                this.ConfirmDialogNotification(selectedNotification);
-            }
+            this.ConfirmDialogNotification(selectedNotification);
+            
             
         } catch (Exception e) {
             showErrorNotification("Erro ao abrir agenda do médico", e.getMessage());
@@ -104,14 +104,16 @@ public class NotificationView  extends VerticalLayout {
             selectedNotification.getMessage()
             );
 
-        dialog.setCancelable(true);
-        dialog.setRejectable(true);
-        dialog.setRejectText("Rejeitar");
-        dialog.addRejectListener(event -> sendNotificationConfirmation(false, selectedNotification));
+        if(selectedNotification.getNotificationStatusEnum() == NotificationStatusEnum.ACTION_REQUIRED) {
+            dialog.setCancelable(true);
+            dialog.setRejectable(true);
+            dialog.setRejectText("Rejeitar");
+            dialog.addRejectListener(event -> sendNotificationConfirmation(false, selectedNotification));
 
-        dialog.setConfirmText("Aceitar");
-        dialog.addConfirmListener(event -> sendNotificationConfirmation(true, selectedNotification));
-
+            dialog.setConfirmText("Aceitar");
+            dialog.addConfirmListener(event -> sendNotificationConfirmation(true, selectedNotification));
+        }
+        
         dialog.open();
     }
 

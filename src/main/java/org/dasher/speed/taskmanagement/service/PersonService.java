@@ -48,6 +48,19 @@ public class PersonService {
         }
         return personRepository.searchDoctors(searchTerm);
     }
+
+    @Transactional(readOnly = true)
+    public List<Person> findAllPatients() {
+        return personRepository.findAllPatients();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Person> searchPatientsByName(String searchTerm) {
+        if (searchTerm == null || searchTerm.trim().isEmpty()) {
+            return findAllPatients();
+        }
+        return personRepository.searchPatients(searchTerm);
+    }
     
     @Transactional(readOnly = true)
     public Person getCurrentPerson() {

@@ -33,6 +33,7 @@ public class CalendarEventHandler {
 
     public void handleTimeslotClick(FullCalendar calendar, TimeslotClickedEvent event, Runnable onSuccess) {
         handleTimeslotClick(calendar, event, onSuccess, null);
+        
     }
 
     public void handleTimeslotClick(FullCalendar calendar, TimeslotClickedEvent event, Runnable onSuccess, Doctor preSelectedDoctor) {
@@ -51,11 +52,50 @@ public class CalendarEventHandler {
             clickedDateTime
         );
         
-        // If we have a pre-selected doctor, set it
         if (preSelectedDoctor != null) {
             dialog.setSelectedDoctor(preSelectedDoctor.getPerson());
-            dialog.getDoctorField().setReadOnly(true); // Prevent changing the doctor
-        }
+            dialog.getDoctorField().setReadOnly(true); 
+        } 
+        
+        dialog.showEditButton(false);
+        dialog.showCancelButton(false);
+        dialog.showSaveButton(true);
+        
+        dialog.onSave(() -> {
+            try {
+                Person selectedDoctor = dialog.getSelectedDoctor();
+                if (selectedDoctor == null) {
+                    throw new IllegalArgumentException("Por favor, selecione um médico");
+                }
+
+                Person currentPerson = personService.getCurrentPerson();
+                
+                Appointment appointment = createNewAppointment(dialog, selectedDoctor, currentPerson);
+                
+                Appointment savedAppointment = dataManager.saveAppointment(appointment);
+                dataManager.addAppointmentToCalendar(calendar, savedAppointment);
+                
+                Notification.show("Agendamento criado com sucesso!", 3000, Notification.Position.MIDDLE);
+                onSuccess.run(); // Refresh calendar after successful creation
+            } catch (Exception e) {
+                Notification.show("Erro ao criar agendamento: " + e.getMessage(), 
+                    3000, Notification.Position.MIDDLE);
+            }
+        });
+        
+        dialog.open();
+    }
+
+    // Novo método para gerenciar agenda de paciente (perspectiva do médico)
+    public void handlePatientScheduleTimeslotClick(FullCalendar calendar, TimeslotClickedEvent event, Runnable onSuccess, Person preSelectedPatient) {
+        LocalDateTime clickedDateTime = event.getDateTime();
+        List<Person> doctors = dataManager.getDoctors();
+        
+        AppointmentDialog dialog = new AppointmentDialog(
+            "Novo Agendamento para " + preSelectedPatient.getFirstName(),
+            doctors,
+            clickedDateTime
+        );
         
         // Configure buttons for new appointment
         dialog.showEditButton(false);
@@ -70,9 +110,7 @@ public class CalendarEventHandler {
                     throw new IllegalArgumentException("Por favor, selecione um médico");
                 }
 
-                Person currentPerson = personService.getCurrentPerson();
-                
-                Appointment appointment = createNewAppointment(dialog, selectedDoctor, currentPerson);
+                Appointment appointment = createPatientAppointment(dialog, selectedDoctor, preSelectedPatient);
                 
                 Appointment savedAppointment = dataManager.saveAppointment(appointment);
                 dataManager.addAppointmentToCalendar(calendar, savedAppointment);
@@ -138,6 +176,18 @@ public class CalendarEventHandler {
         return appointment;
     }
     
+    private Appointment createPatientAppointment(AppointmentDialog dialog, Person doctor, Person patient) {
+        Appointment appointment = new Appointment();
+        appointment.setTitle(dialog.getTitle());
+        appointment.setAppointmentDate(dialog.getStartDateTime());
+        appointment.setEndDate(dialog.getEndDateTime());
+        appointment.setStatus(Appointment.AppointmentStatus.SCHEDULED);
+        appointment.setPersonDoctor(doctor);
+        appointment.setPersonPatient(patient);
+        appointment.setDescription("Agendado pelo médico para: " + patient.getFirstName() + " " + patient.getLastName());
+        
+        return appointment;
+    }
     
     private void configureExistingAppointmentDialog(FullCalendar calendar, AppointmentDialog dialog, 
                                                    Appointment appointment, Entry clickedEntry,

@@ -22,6 +22,14 @@ public interface PersonRepository extends JpaRepository<Person, Integer> {
            "lower(p.lastName) like lower(concat('%', :searchTerm, '%')))")
     List<Person> searchDoctors(@Param("searchTerm") String searchTerm);
 
+    @Query("select p from Person p where p.role = org.dasher.speed.taskmanagement.domain.Enums.PersonRole.PATIENT")
+    List<Person> findAllPatients();
+
+    @Query("select p from Person p where p.role = org.dasher.speed.taskmanagement.domain.Enums.PersonRole.PATIENT and " +
+           "(lower(p.firstName) like lower(concat('%', :searchTerm, '%')) or " +
+           "lower(p.lastName) like lower(concat('%', :searchTerm, '%')))")
+    List<Person> searchPatients(@Param("searchTerm") String searchTerm);
+
     @Query("select c from Person c" +
     " where lower(c.firstName) like lower(concat('%', :searchTerm, '%'))" + 
     " or lower(c.lastName) like lower(concat('%', :searchTerm, '%'))") 

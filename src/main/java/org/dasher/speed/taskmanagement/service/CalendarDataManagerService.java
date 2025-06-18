@@ -57,6 +57,19 @@ public class CalendarDataManagerService {
         }
     }
     
+    public void loadPatientAppointments(FullCalendar calendar, Person patient) {
+        try {
+            List<Appointment> appointments = appointmentService.findByPerson(patient);
+            
+            for (Appointment appointment : appointments) {
+                addAppointmentToCalendar(calendar, appointment);
+            }
+        } catch (Exception e) {
+            Notification.show("Erro ao carregar agendamentos do paciente: " + e.getMessage(), 
+                3000, Notification.Position.MIDDLE);
+        }
+    }
+    
     public void addAppointmentToCalendar(FullCalendar calendar, Appointment appointment) {
         Entry entry = entryMapper.createCalendarEntry(appointment);
         calendar.getEntryProvider().asInMemory().addEntry(entry);
