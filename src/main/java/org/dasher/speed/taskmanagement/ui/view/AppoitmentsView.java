@@ -3,18 +3,12 @@ package org.dasher.speed.taskmanagement.ui.view;
 import org.dasher.speed.base.ui.component.ViewToolbar;
 import org.dasher.speed.taskmanagement.domain.Person;
 import org.dasher.speed.taskmanagement.domain.Appointment;
-import org.dasher.speed.taskmanagement.domain.Doctor;
-import org.dasher.speed.taskmanagement.service.PersonService;
 import org.dasher.speed.taskmanagement.service.AppointmentService;
 import org.dasher.speed.taskmanagement.service.CalendarDataManagerService;
-import org.dasher.speed.taskmanagement.ui.components.CalendarDialog;
+import org.dasher.speed.taskmanagement.service.PersonService;
 import org.dasher.speed.taskmanagement.ui.components.CalendarEventHandler;
 
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.Main;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -36,13 +30,15 @@ public class AppoitmentsView extends VerticalLayout {
     private final AppointmentService appointmentService;
     private final CalendarDataManagerService dataManager;
     private final CalendarEventHandler eventHandler;
+    private final PersonService personService;
     private final TextField filterText;
     private final Grid<Appointment> grid;
 
-    public AppoitmentsView(AppointmentService appointmentService, CalendarDataManagerService dataManager, CalendarEventHandler eventHandler) {
+    public AppoitmentsView(AppointmentService appointmentService, CalendarDataManagerService dataManager, CalendarEventHandler eventHandler, PersonService personService) {
         this.appointmentService = appointmentService;
         this.dataManager = dataManager;
         this.eventHandler = eventHandler;
+        this.personService = personService;
         this.filterText = new TextField();
         this.grid = new Grid<>();
 
@@ -82,8 +78,13 @@ public class AppoitmentsView extends VerticalLayout {
         grid.addColumn(appointment -> {
             return appointment.getAppointmentDate() != null ? 
                 appointment.getAppointmentDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) : "N/A";
-        }).setHeader("Data e Hora");
+        }).setHeader("Data e Hora Inicial");
         
+        grid.addColumn(appointment -> {
+            return appointment.getEndDate() != null ? 
+                appointment.getEndDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) : "N/A";
+        }).setHeader("Data e Hora Final");
+
         grid.addColumn(appointment -> {
             return appointment.getStatus() != null ? 
                 appointment.getStatus().getDisplayName() : "N/A";
@@ -103,7 +104,22 @@ public class AppoitmentsView extends VerticalLayout {
     private void updateList() {
         try {	
             String searchTerm = filterText.getValue();
-            grid.setItems(appointmentService.searchAppointmentsByPatient(searchTerm));
+            Person currentPerson = personService.getCurrentPerson();
+            
+            if (searchTerm == null || searchTerm.trim().isEmpty()) {
+                // Se não há filtro, mostra appointments relacionados ao usuário atual
+                grid.setItems(appointmentService.findRelatedToPerson(currentPerson));
+            } else {
+                // Se há filtro, busca por nome do paciente nos appointments do usuário
+                grid.setItems(appointmentService.findRelatedToPerson(currentPerson).stream()
+                    .filter(appointment -> {
+                        Person patient = appointment.getPersonPatient();
+                        if (patient == null) return false;
+                        String fullName = patient.getFirstName() + " " + patient.getLastName();
+                        return fullName.toLowerCase().contains(searchTerm.toLowerCase());
+                    })
+                    .toList());
+            }
         } catch (Exception e) {
             showErrorNotification("Erro ao atualizar lista de agendamentos", e.getMessage());
         }

@@ -85,4 +85,11 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
            "LEFT JOIN FETCH a.person_patient pp " +
            "WHERE a.id = :id")
     Optional<Appointment> findByIdWithDetails(@Param("id") long id);
+    
+    @Query("SELECT DISTINCT a FROM Appointment a " +
+           "LEFT JOIN FETCH a.person_doctor pd " +
+           "LEFT JOIN FETCH a.person_patient pp " +
+           "WHERE a.person_doctor = :person OR a.person_patient = :person " +
+           "ORDER BY a.appointmentDate")
+    List<Appointment> findRelatedToPersonAsAny(@Param("person") Person person);
 } 

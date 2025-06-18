@@ -29,19 +29,24 @@ public class AppointmentDialog extends Dialog {
     private Runnable onSave;
 
     private final ComboBox<Person> doctorField;
+    private final ComboBox<Person> patientField;
     private final TimePicker startTime;
     private final TimePicker endTime;
     private final TextField titleField;
     private LocalDateTime selectedDate;
 
-    private final Span patientField;
+    private final Span patientDisplayField;
     private final Span statusField;
 
     public AppointmentDialog(String title, List<Person> doctors, LocalDateTime initialDateTime) {
-        this(title, doctors, initialDateTime, null);
+        this(title, doctors, null, initialDateTime, null);
     }
 
-    public AppointmentDialog(String title, List<Person> doctors, LocalDateTime initialDateTime, Appointment existingAppointment) {
+    public AppointmentDialog(String title, List<Person> doctors, List<Person> patients, LocalDateTime initialDateTime) {
+        this(title, doctors, patients, initialDateTime, null);
+    }
+
+    public AppointmentDialog(String title, List<Person> doctors, List<Person> patients, LocalDateTime initialDateTime, Appointment existingAppointment) {
         this.selectedDate = initialDateTime;
         setHeaderTitle(title);
         setDraggable(true);
@@ -63,20 +68,35 @@ public class AppointmentDialog extends Dialog {
             doctorField.setValue(existingAppointment.getPersonDoctor());
         }
 
+        // ComboBox de paciente (apenas para criação)
+        patientField = new ComboBox<>("Paciente");
+        if (patients != null) {
+            patientField.setItems(patients);
+            patientField.setItemLabelGenerator(person -> person.getFirstName() + " " + person.getLastName());
+        }
+        patientField.setVisible(existingAppointment == null && patients != null);
+        patientField.setReadOnly(existingAppointment != null);
+
         // TimePickers
         startTime = new TimePicker("Horário de Início");
         endTime = new TimePicker("Horário de Fim");
         initializeTimePickers(existingAppointment, initialDateTime);
 
-        // Informações adicionais
-        patientField = new Span();
+        // Informações adicionais (apenas para consultas existentes)
+        patientDisplayField = new Span();
         statusField = new Span();
         setDetails(existingAppointment);
         styleInfoFields(existingAppointment);
 
         // Layout do formulário
-        FormLayout formLayout = new FormLayout(titleField, doctorField, startTime, endTime);
-        VerticalLayout infoLayout = new VerticalLayout(statusField, patientField);
+        FormLayout formLayout = new FormLayout();
+        formLayout.add(titleField, doctorField);
+        if (patientField.isVisible()) {
+            formLayout.add(patientField);
+        }
+        formLayout.add(startTime, endTime);
+        
+        VerticalLayout infoLayout = new VerticalLayout(statusField, patientDisplayField);
         infoLayout.setSpacing(false);
         infoLayout.setPadding(false);
 
@@ -129,7 +149,11 @@ public class AppointmentDialog extends Dialog {
             statusField.setText("Status: " + appointment.getStatus().getDisplayName());
 
             Person patient = appointment.getPersonPatient();
-            patientField.setText("Paciente: " + patient.getFirstName() + " " + patient.getLastName());
+            if (patient != null) {
+                patientDisplayField.setText("Paciente: " + patient.getFirstName() + " " + patient.getLastName());
+            } else {
+                patientDisplayField.setText("Paciente: Não informado");
+            }
         }
     }
 
@@ -139,7 +163,7 @@ public class AppointmentDialog extends Dialog {
             statusField.addClassName(LumoUtility.FontWeight.BOLD);
             statusField.getStyle().set("color", calendarEntryMapper.getColorByStatus(existingAppointment.getStatus()));
         }
-        patientField.addClassNames(LumoUtility.TextColor.SECONDARY);
+        patientDisplayField.addClassNames(LumoUtility.TextColor.SECONDARY);
     }
 
     // Getters e Setters
@@ -149,6 +173,14 @@ public class AppointmentDialog extends Dialog {
 
     public void setSelectedDoctor(Person doctor) {
         doctorField.setValue(doctor);
+    }
+
+    public Person getSelectedPatient() {
+        return patientField.getValue();
+    }
+
+    public void setSelectedPatient(Person patient) {
+        patientField.setValue(patient);
     }
 
     public String getTitle() {

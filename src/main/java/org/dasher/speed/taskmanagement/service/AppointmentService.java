@@ -105,6 +105,11 @@ public class AppointmentService {
     public List<Appointment> findAll() {
         return appointmentRepository.findAllWithDetails();
     }
+    
+    @Transactional(readOnly = true)
+    public List<Appointment> findRelatedToPerson(Person person) {
+        return appointmentRepository.findRelatedToPersonAsAny(person);
+    }
 
     public void validateAppointment(Appointment appointment) throws IllegalArgumentException {
         if (appointment.getAppointmentDate() == null) {

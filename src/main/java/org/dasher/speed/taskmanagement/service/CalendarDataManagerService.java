@@ -33,7 +33,7 @@ public class CalendarDataManagerService {
     
     public void loadExistingAppointments(FullCalendar calendar) {
         try {
-            List<Appointment> appointments = appointmentService.findByPerson(personService.getCurrentPerson());
+            List<Appointment> appointments = appointmentService.findRelatedToPerson(personService.getCurrentPerson());
             
             for (Appointment appointment : appointments) {
                 addAppointmentToCalendar(calendar, appointment);
@@ -88,6 +88,11 @@ public class CalendarDataManagerService {
     
     public List<Person> getDoctors() {
         return personService.findAllDoctors().stream()
+            .collect(Collectors.toList());
+    }
+    
+    public List<Person> getPersons() {
+        return personService.findAll().stream()
             .collect(Collectors.toList());
     }
     

@@ -11,7 +11,6 @@ import org.dasher.speed.taskmanagement.ui.components.CalendarEventHandler;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.Main;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.notification.Notification;
@@ -71,7 +70,6 @@ public class DoctorView extends VerticalLayout {
         grid.addColumn(Person::getRole).setHeader("Role");
         grid.getColumns().forEach(col -> col.setAutoWidth(true));
         
-        // Add calendar action column
         grid.addComponentColumn(this::createCalendarButton)
             .setHeader("Agenda")
             .setWidth("120px")

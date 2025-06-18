@@ -40,7 +40,10 @@ public class CalendarEventHandler {
 
     public void handleTimeslotClick(FullCalendar calendar, TimeslotClickedEvent event, Runnable onSuccess, Doctor preSelectedDoctor) {
         LocalDateTime clickedDateTime = event.getDateTime();
+        Person currentPerson = personService.getCurrentPerson();
+        
         List<Person> doctors;
+        List<Person> patients = null;
         
         if (preSelectedDoctor != null) {
             doctors = List.of(preSelectedDoctor.getPerson());
@@ -48,9 +51,13 @@ public class CalendarEventHandler {
             doctors = dataManager.getDoctors();
         }
         
+        patients = dataManager.getPersons();
+        
+        
         AppointmentDialog dialog = new AppointmentDialog(
             "Novo Agendamento",
             doctors,
+            patients,
             clickedDateTime
         );
         
@@ -66,13 +73,24 @@ public class CalendarEventHandler {
         dialog.onSave(() -> {
             try {
                 Person selectedDoctor = dialog.getSelectedDoctor();
+                Person selectedPatient = dialog.getSelectedPatient();
+                
                 if (selectedDoctor == null) {
                     throw new IllegalArgumentException("Por favor, selecione um médico");
                 }
 
-                Person currentPerson = personService.getCurrentPerson();
+                // Se é paciente, usa ele próprio. Se é médico/admin, deve selecionar um paciente
+                Person appointmentPatient;
+                if (currentPerson.getRole() == PersonRole.PATIENT) {
+                    appointmentPatient = currentPerson;
+                } else {
+                    if (selectedPatient == null) {
+                        throw new IllegalArgumentException("Por favor, selecione um paciente");
+                    }
+                    appointmentPatient = selectedPatient;
+                }
                 
-                Appointment appointment = createNewAppointment(dialog, selectedDoctor, currentPerson);
+                Appointment appointment = createNewAppointment(dialog, selectedDoctor, appointmentPatient, currentPerson);
                 
                 Appointment savedAppointment = dataManager.saveAppointment(appointment);
                 dataManager.addAppointmentToCalendar(calendar, savedAppointment);
@@ -96,6 +114,7 @@ public class CalendarEventHandler {
         AppointmentDialog dialog = new AppointmentDialog(
             "Novo Agendamento para " + preSelectedPatient.getFirstName(),
             doctors,
+            null, 
             clickedDateTime
         );
         
@@ -158,6 +177,7 @@ public class CalendarEventHandler {
             AppointmentDialog dialog = new AppointmentDialog(
                 "Detalhes do Agendamento",
                 dataManager.getDoctors(),
+                null, // sem lista de pacientes para consultas existentes
                 appointment.getAppointmentDate(),
                 appointment
             );
@@ -177,18 +197,21 @@ public class CalendarEventHandler {
         }
     }
 
-    private Appointment createNewAppointment(AppointmentDialog dialog, Person person_doctor, Person currentPerson) {
+    private Appointment createNewAppointment(AppointmentDialog dialog, Person person_doctor, Person appointmentPatient, Person currentPerson) {
         Appointment appointment = new Appointment();
         appointment.setTitle(dialog.getTitle());
         appointment.setAppointmentDate(dialog.getStartDateTime());
         appointment.setEndDate(dialog.getEndDateTime());
         appointment.setStatus(Appointment.AppointmentStatus.SCHEDULING_REQUEST);
         appointment.setPersonDoctor	(person_doctor);
-        appointment.setPersonPatient(currentPerson);
+        appointment.setPersonPatient(appointmentPatient);
         
-        // Add extra information if the person scheduling is a patient
+        // Add extra information based on who is scheduling
         if (currentPerson.getRole() == PersonRole.PATIENT) {
-            appointment.setDescription("Paciente: " + currentPerson.getFirstName() + " " + currentPerson.getLastName());
+            appointment.setDescription("Agendado pelo paciente: " + currentPerson.getFirstName() + " " + currentPerson.getLastName());
+        } else {
+            appointment.setDescription("Agendado por: " + currentPerson.getFirstName() + " " + currentPerson.getLastName() + 
+                                     " para o paciente: " + appointmentPatient.getFirstName() + " " + appointmentPatient.getLastName());
         }
         
         return appointment;
@@ -229,34 +252,12 @@ public class CalendarEventHandler {
     private void configureExistingAppointmentDialog(FullCalendar calendar, AppointmentDialog dialog, 
                                                    Appointment appointment, Entry clickedEntry,
                                                    Runnable onSuccess) {
-        dialog.showEditButton(true);  
+        // Apenas visualização e cancelamento - SEM edição
+        dialog.showEditButton(false);  
         dialog.showCancelButton(true);  
         dialog.showSaveButton(false);  
         
-        // Configure edit action
-        dialog.onEdit(() -> {
-            dialog.showSaveButton(true);
-            dialog.showEditButton(false);
-            
-            dialog.onSave(() -> {
-                try {
-                    // Update appointment dates
-                    appointment.setAppointmentDate(dialog.getStartDateTime());
-                    appointment.setEndDate(dialog.getEndDateTime());
-                    
-                    Appointment savedAppointment = dataManager.saveAppointment(appointment);
-                    dataManager.updateAppointmentInCalendar(calendar, clickedEntry, savedAppointment);
-                    
-                    Notification.show("Agendamento atualizado com sucesso!", 3000, Notification.Position.MIDDLE);
-                    onSuccess.run(); // Refresh calendar after successful update
-                } catch (Exception e) {
-                    Notification.show("Erro ao atualizar agendamento: " + e.getMessage(), 
-                        3000, Notification.Position.MIDDLE);
-                }
-            });
-        });
-        
-        // Configure cancel action
+        // Configure cancel action only
         dialog.onCancel(() -> {
             try {
                 dataManager.deleteAppointment(appointment.getId());

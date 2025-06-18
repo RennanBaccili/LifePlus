@@ -40,6 +40,11 @@ public class PersonService {
     public List<Person> findAllDoctors() {
         return personRepository.findAllDoctors();
     }
+    
+    @Transactional(readOnly = true)
+    public List<Person> findAll() {
+        return personRepository.findAll();
+    }
 
     @Transactional(readOnly = true)
     public List<Person> searchDoctorsByName(String searchTerm) {
