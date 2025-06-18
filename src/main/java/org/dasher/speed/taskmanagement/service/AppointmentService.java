@@ -2,7 +2,9 @@ package org.dasher.speed.taskmanagement.service;
 
 import org.dasher.speed.taskmanagement.domain.Appointment;
 import org.dasher.speed.taskmanagement.domain.Doctor;
+import org.dasher.speed.taskmanagement.domain.NotificationMessage;
 import org.dasher.speed.taskmanagement.domain.Person;
+import org.dasher.speed.taskmanagement.domain.Appointment.AppointmentStatus;
 import org.dasher.speed.taskmanagement.repository.AppointmentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,7 +29,6 @@ public class AppointmentService {
     @Transactional
     public Appointment save(Appointment appointment) {
         var appointmentSaved = appointmentRepository.save(appointment);
-        notificationMessageService.sendNotificationByAppointment(appointmentSaved);
         return appointmentSaved;
     }
 
@@ -38,7 +39,7 @@ public class AppointmentService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<Appointment> getAppointmentById(Integer id) {
+    public Optional<Appointment> getAppointmentById(long id) {
         return appointmentRepository.findByIdWithDetails(id);
     }
 
@@ -85,7 +86,9 @@ public class AppointmentService {
         if (appointmentOpt.isPresent()) {
             Appointment appointment = appointmentOpt.get();
             appointment.setStatus(newStatus);
-            return save(appointment);
+             var appointmentSaved = save(appointment);
+            notificationMessageService.sendNotificationByAppointment(appointmentSaved);
+            return appointmentSaved;
         }
         throw new IllegalArgumentException("Appointment not found with id: " + appointmentId);
     }
@@ -115,6 +118,19 @@ public class AppointmentService {
                                      appointment.getEndDate(), 
                                      excludeId)) {
             throw new IllegalArgumentException("Já existe um agendamento neste horário para o médico");
+        }
+    }
+
+    public void acceptScheduleAndSendNotifcaion(boolean isAccepted, NotificationMessage notificationMessage){
+        var appointment = getAppointmentById(notificationMessage.getAppointmentId());
+        if (appointment.isPresent()) {
+            if (isAccepted) {
+                appointment.get().setStatus(AppointmentStatus.CONFIRMED);
+            } else {
+                appointment.get().setStatus(AppointmentStatus.CANCELLED);
+            }
+            var updatedAppointment = updateAppointment(appointment.get());
+            notificationMessageService.sendNotificationByAppointment(updatedAppointment);
         }
     }
 } 

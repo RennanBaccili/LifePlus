@@ -76,5 +76,5 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
            "LEFT JOIN FETCH a.person_doctor pd " +
            "LEFT JOIN FETCH a.person_patient pp " +
            "WHERE a.id = :id")
-    Optional<Appointment> findByIdWithDetails(@Param("id") Integer id);
+    Optional<Appointment> findByIdWithDetails(@Param("id") long id);
 } 

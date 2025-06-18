@@ -19,13 +19,16 @@ public class CalendarDataManagerService {
     private final AppointmentService appointmentService;
     private final PersonService personService;
     private final CalendarEntryMapper entryMapper;
+    private final NotificationMessageService notificationMessageService;
     
     public CalendarDataManagerService(AppointmentService appointmentService, 
                               PersonService personService,
-                              CalendarEntryMapper entryMapper) {
+                              CalendarEntryMapper entryMapper,
+                              NotificationMessageService notificationMessageService) {
         this.appointmentService = appointmentService;
         this.personService = personService;
         this.entryMapper = entryMapper;
+        this.notificationMessageService = notificationMessageService;
     }
     
     public void loadExistingAppointments(FullCalendar calendar) {
@@ -77,7 +80,9 @@ public class CalendarDataManagerService {
     
     public Appointment saveAppointment(Appointment appointment) {
         appointmentService.validateAppointment(appointment);
-        return appointmentService.save(appointment);
+        var appointmentSaved = appointmentService.save(appointment);
+        notificationMessageService.sendNotificationByAppointment(appointmentSaved);
+        return appointmentSaved;
     }
     
     public Optional<Appointment> findAppointmentById(Integer id) {

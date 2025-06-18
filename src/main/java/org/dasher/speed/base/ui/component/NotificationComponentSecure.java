@@ -19,7 +19,7 @@ public class NotificationComponentSecure {
     private final MessagesButton bellButton;
 
     public NotificationComponentSecure() {
-        this.notificationClientService = new NotificationClientService();
+        this.notificationClientService = SpringContextHelper.getBean(NotificationClientService.class);
         this.bellButton = createNotificationButton();
 
         updateNotifications();

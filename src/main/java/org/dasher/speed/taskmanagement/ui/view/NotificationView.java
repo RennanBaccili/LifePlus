@@ -4,12 +4,11 @@ import org.dasher.speed.base.ui.component.ViewToolbar;
 import org.dasher.speed.taskmanagement.domain.NotificationMessage;
 import org.dasher.speed.taskmanagement.notificationApi.Dtos.enums.NotificationStatusEnum;
 import org.dasher.speed.taskmanagement.notificationApi.Service.NotificationClientService;
-import org.dasher.speed.taskmanagement.service.NotificationMessageService;
+import org.dasher.speed.taskmanagement.service.AppointmentService;
 import org.dasher.speed.taskmanagement.ui.components.CalendarEventHandler;
 
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -18,24 +17,24 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 
 @Route(value = "notifications")
 @PageTitle("My Notifications | LifePlus")
 @AnonymousAllowed
 public class NotificationView  extends VerticalLayout {
     
-    private final NotificationMessageService notificationMessageService;
     private final NotificationClientService notificationClientService;
     private final TextField filterText;
     private final Grid<NotificationMessage> grid;
-    private final Span Status;
+    private final AppointmentService appointmentService;
 
-    public NotificationView(NotificationClientService notificationClientService, NotificationMessageService notificationMessageService,  CalendarEventHandler eventHandler) {
+    public NotificationView(NotificationClientService notificationClientService,  CalendarEventHandler eventHandler, AppointmentService appointmentService) {
         this.notificationClientService = notificationClientService;
-        this.notificationMessageService = notificationMessageService;
+        this.appointmentService = appointmentService;
         this.filterText = new TextField();
         this.grid = new Grid<>();
-        this.Status = new Span();
 
         setupToolbar();
         configureGrid();
@@ -53,7 +52,7 @@ public class NotificationView  extends VerticalLayout {
         filterText.setClearButtonVisible(true);
         filterText.setValueChangeMode(ValueChangeMode.LAZY);
         filterText.addValueChangeListener(e -> updateList());
-        add(new ViewToolbar("Doctors List", ViewToolbar.group(filterText)));
+        add(new ViewToolbar("Nofications List", ViewToolbar.group(filterText)));
     }
 
     private void configureGrid() {
@@ -61,19 +60,21 @@ public class NotificationView  extends VerticalLayout {
         grid.addClassName("notification-grid");
         grid.addColumn(NotificationMessage::getTitle).setHeader("Title");
         grid.addColumn(NotificationMessage::getMessage).setHeader("Message");
-        grid.addColumn(NotificationMessage::getCreatedAt).setHeader("Created At");
+        grid.addColumn(notification -> notification.getCreatedAt().format(
+            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+        )).setHeader("Created Date").setSortable(true);
         grid.addColumn(NotificationMessage::isRead).setHeader("Is Read");
-
         grid.getColumns().forEach(col -> col.setAutoWidth(true));
-        
         grid.addItemClickListener(item -> openNotification(item.getItem()));
-        
+
         add(grid);
     }
 
     private void updateList() {
         String searchTerm = filterText.getValue();
-        grid.setItems(notificationClientService.getAllNotificationsByReceiverId(1L));
+        var notifications = notificationClientService.getAllNotificationsByReceiverId(1L);
+        notifications.sort(Comparator.comparing(NotificationMessage::getCreatedAt).reversed());
+        grid.setItems(notifications);
     }
     
     private void openNotification(NotificationMessage selectedNotification) {
@@ -97,8 +98,6 @@ public class NotificationView  extends VerticalLayout {
     }
 
     private void ConfirmDialogNotification(NotificationMessage selectedNotification) {
-        Status.setVisible(false);
-
         ConfirmDialog dialog = new ConfirmDialog();
         dialog.setHeader("Você tem um agendamento pendente");
         dialog.setText(
@@ -118,9 +117,13 @@ public class NotificationView  extends VerticalLayout {
     }
 
     private void sendNotificationConfirmation(boolean isAccepted, NotificationMessage selectedNotification) {
-        //TODO: Implementar a lógica de envio da notificação de confirmação
-        
-        notificationMessageService.sendNotificationConfirmation(isAccepted, selectedNotification.getAppointmentId());
-        updateList();
+        try{
+            appointmentService.acceptScheduleAndSendNotifcaion(isAccepted,selectedNotification);
+            selectedNotification.setNotificationStatusEnum(NotificationStatusEnum.INFO);
+            notificationClientService.updateNotification(selectedNotification);
+            updateList();
+        }catch (Exception e) {
+            showErrorNotification("Erro ao aceitar agendamento", e.getMessage());
+        }
     }
 }

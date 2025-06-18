@@ -1,5 +1,6 @@
 package org.dasher.speed.taskmanagement.security;
 
+import org.dasher.speed.taskmanagement.notificationApi.Service.NotificationClientService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -31,5 +32,12 @@ public class SecurityBeans {
             JwtTokenService jwtTokenService,
             UserDetailsService userDetailsService) {
         return new JwtAuthenticationFilter(jwtTokenService, userDetailsService);
+    }
+
+    @Bean
+    public NotificationClientService notificationClientService(
+            JwtTokenService jwtTokenService,
+            SecurityService securityService) {
+        return new NotificationClientService(jwtTokenService, securityService);
     }
 } 

@@ -8,6 +8,7 @@ import org.dasher.speed.taskmanagement.service.PersonService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.dom.Element;
 import com.vaadin.flow.dom.Style;
 
@@ -19,7 +20,7 @@ public class NotificationComponent {
 
     public NotificationComponent() {
         // Acessa os beans Spring através do helper
-        this.notificationClientService = new NotificationClientService();
+        this.notificationClientService = SpringContextHelper.getBean(NotificationClientService.class);
         this.personService = SpringContextHelper.getBean(PersonService.class);
         this.bellButton = createNotificationButton();
 
@@ -37,7 +38,7 @@ public class NotificationComponent {
         ContextMenu menu = new ContextMenu();
         menu.setOpenOnClick(true);
         menu.setTarget(bellBtn);
-        menu.addItem("My Notifications");
+        menu.addItem("My Notifications", e -> UI.getCurrent().navigate("notifications"));
         
         return bellBtn;
     }

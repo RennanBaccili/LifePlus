@@ -2,6 +2,7 @@ package org.dasher.speed.taskmanagement.service;
 
 import org.dasher.speed.taskmanagement.domain.Appointment;
 import org.dasher.speed.taskmanagement.domain.NotificationMessage;
+import org.dasher.speed.taskmanagement.domain.Appointment.AppointmentStatus;
 import org.dasher.speed.taskmanagement.notificationApi.Dtos.enums.NotificationStatusEnum;
 import org.dasher.speed.taskmanagement.notificationApi.Controller.NotificationMessageController;
 import org.dasher.speed.taskmanagement.notificationApi.Dtos.NotificationMessageRecordDto;
@@ -16,22 +17,6 @@ public class NotificationMessageService {
         this.notificationMessageController = notificationMessageController;
     }
 
-
-    public void sendNotificationConfirmation(boolean isAccepted, Long appointmentId) {
-        // TODO:  refatorar essa lógica
-        /*
-        var appointment = appointmentService.getAppointmentById(appointmentId.intValue());
-        if (appointment.isPresent()) {
-            if (isAccepted) {
-                appointment.get().setStatus(Appointment.AppointmentStatus.SCHEDULED);
-            } else {
-                appointment.get().setStatus(Appointment.AppointmentStatus.CANCELLED);
-            }
-            appointmentService.updateAppointment(appointment.get());
-        }
-             */
-    }
-
     public void sendNotificationByAppointment(Appointment appointment) {
         var notificationMessageRecordDto = setNotificationMessageByAppointment(appointment);
         notificationMessageController.sendNotification(notificationMessageRecordDto);
@@ -42,7 +27,6 @@ public class NotificationMessageService {
         NotificationMessage.setSenderId(appointment.getPersonPatient().getId().longValue());
         NotificationMessage.setReceiverId(appointment.getPersonDoctor().getId().longValue());   
         NotificationMessage.setAppointmentId(appointment.getId().longValue());
-        NotificationMessage.setTitle("Requisição de agendamento"); 
         NotificationMessage.setRead(false); 
         NotificationMessage = setMessageAndStatusByAppointment(NotificationMessage, appointment);
 
@@ -61,16 +45,19 @@ public class NotificationMessageService {
     public NotificationMessage setMessageAndStatusByAppointment(NotificationMessage notificationMessage, Appointment appointment) {
         String message = "";
 
-        if (appointment.getStatus() == Appointment.AppointmentStatus.SCHEDULING_REQUEST) {
+        if (appointment.getStatus() == AppointmentStatus.SCHEDULING_REQUEST) {
+            notificationMessage.setTitle("Requisição de agendamento");
             notificationMessage.setNotificationStatusEnum(NotificationStatusEnum.ACTION_REQUIRED);
             message = "O usuario " + appointment.getPersonPatient().getFirstName() + " solicitou um agendamento com vc ";
         }
-        if (appointment.getStatus() == Appointment.AppointmentStatus.CONFIRMED) {
-            notificationMessage.setNotificationStatusEnum(NotificationStatusEnum.ACTION_REQUIRED);
+        if (appointment.getStatus() == AppointmentStatus.CONFIRMED) {
+            notificationMessage.setTitle("Confirmação de agendamento");
+            notificationMessage.setNotificationStatusEnum(NotificationStatusEnum.INFO);
             message = "O Consulta número: " + appointment.getId() + " foi agendada com sucesso";
         }
-        if (appointment.getStatus() == Appointment.AppointmentStatus.CANCELLED) {
-            notificationMessage.setNotificationStatusEnum(NotificationStatusEnum.ACTION_REQUIRED);
+        if (appointment.getStatus() == AppointmentStatus.CANCELLED) {
+            notificationMessage.setTitle("Cancelamento de agendamento");
+            notificationMessage.setNotificationStatusEnum(NotificationStatusEnum.INFO);
             message = "A consulta número: " + appointment.getId() + " foi cancelada";
         }
 

@@ -18,10 +18,10 @@ import com.vaadin.flow.router.Layout;
 import com.vaadin.flow.server.menu.MenuConfiguration;
 import com.vaadin.flow.server.menu.MenuEntry;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import org.dasher.speed.base.ui.components.ThemeToggle;
 
 import static com.vaadin.flow.theme.lumo.LumoUtility.*;
 
+import org.dasher.speed.base.ui.component.ThemeToggle;
 import org.dasher.speed.taskmanagement.security.SecurityService;
 
 @Layout

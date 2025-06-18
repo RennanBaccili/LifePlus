@@ -20,8 +20,8 @@ public class NotificationComponentBean {
     private final PersonService personService;
 
     @Autowired
-    public NotificationComponentBean(PersonService personService) {
-        this.notificationClientService = new NotificationClientService();
+    public NotificationComponentBean(PersonService personService, NotificationClientService notificationClientService) {
+        this.notificationClientService = notificationClientService;
         this.personService = personService;
     }
 
