@@ -8,14 +8,14 @@ import com.vaadin.flow.dom.ThemeList;
 import com.vaadin.flow.theme.lumo.Lumo;
 
 public class ThemeToggle extends Button {
-    private boolean isDarkMode = true;
+    private boolean isDarkMode = false;
 
     public ThemeToggle() {
         super();
         addThemeVariants(ButtonVariant.LUMO_CONTRAST, ButtonVariant.LUMO_TERTIARY);
         updateThemeIcon();
         
-       var clic = addClickListener(click -> {
+        addClickListener(click -> {
             isDarkMode = !isDarkMode;
             updateTheme();
             updateThemeIcon();
