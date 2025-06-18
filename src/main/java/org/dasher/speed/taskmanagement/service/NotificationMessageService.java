@@ -50,7 +50,7 @@ public class NotificationMessageService {
             notificationMessage.setNotificationStatusEnum(NotificationStatusEnum.ACTION_REQUIRED);
             message = "O usuario " + appointment.getPersonPatient().getFirstName() + " solicitou um agendamento com vc ";
         }
-        if (appointment.getStatus() == AppointmentStatus.CONFIRMED) {
+        if (appointment.getStatus() == AppointmentStatus.SCHEDULED) {
             notificationMessage.setTitle("Confirmação de agendamento");
             notificationMessage.setNotificationStatusEnum(NotificationStatusEnum.INFO);
             message = "O Consulta número: " + appointment.getId() + " foi agendada com sucesso";

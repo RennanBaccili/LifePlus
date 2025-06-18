@@ -148,7 +148,6 @@ public class Appointment {
     public enum AppointmentStatus {
         SCHEDULING_REQUEST("Agendamento solicitado"),
         SCHEDULED("Agendado"),
-        CONFIRMED("Confirmado"),
         IN_PROGRESS("Em andamento"),
         COMPLETED("Concluído"),
         CANCELLED("Cancelado"),

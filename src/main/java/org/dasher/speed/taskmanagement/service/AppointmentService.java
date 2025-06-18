@@ -121,16 +121,18 @@ public class AppointmentService {
         }
     }
 
-    public void acceptScheduleAndSendNotifcaion(boolean isAccepted, NotificationMessage notificationMessage){
+    public Appointment acceptSchedule(boolean isAccepted, NotificationMessage notificationMessage){
         var appointment = getAppointmentById(notificationMessage.getAppointmentId());
         if (appointment.isPresent()) {
             if (isAccepted) {
-                appointment.get().setStatus(AppointmentStatus.CONFIRMED);
+                appointment.get().setStatus(AppointmentStatus.SCHEDULED);
             } else {
                 appointment.get().setStatus(AppointmentStatus.CANCELLED);
             }
             var updatedAppointment = updateAppointment(appointment.get());
             notificationMessageService.sendNotificationByAppointment(updatedAppointment);
+            return updatedAppointment;
         }
+        return null;
     }
 } 

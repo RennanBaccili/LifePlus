@@ -61,11 +61,10 @@ public class CalendarEntryMapper {
         entryToAppointmentId.clear();
     }
     
-    private String getColorByStatus(Appointment.AppointmentStatus status) {
+    public String getColorByStatus(Appointment.AppointmentStatus status) {
         switch (status) {
             case SCHEDULING_REQUEST: return "#FF9800"; // Orange
             case SCHEDULED: return "#2196F3"; // Blue
-            case CONFIRMED: return "#4CAF50"; // Green
             case IN_PROGRESS: return "#FF9800"; // Orange
             case COMPLETED: return "#9E9E9E"; // Gray
             case CANCELLED: return "#F44336"; // Red

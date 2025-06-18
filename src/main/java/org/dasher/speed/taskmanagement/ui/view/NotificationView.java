@@ -105,7 +105,6 @@ public class NotificationView  extends VerticalLayout {
             );
 
         dialog.setCancelable(true);
-
         dialog.setRejectable(true);
         dialog.setRejectText("Rejeitar");
         dialog.addRejectListener(event -> sendNotificationConfirmation(false, selectedNotification));
@@ -118,7 +117,11 @@ public class NotificationView  extends VerticalLayout {
 
     private void sendNotificationConfirmation(boolean isAccepted, NotificationMessage selectedNotification) {
         try{
-            appointmentService.acceptScheduleAndSendNotifcaion(isAccepted,selectedNotification);
+            var updatedAppointment =appointmentService.acceptSchedule(isAccepted, selectedNotification);
+            if(updatedAppointment == null){
+                showErrorNotification("Erro ao aceitar agendamento", "Agendamento não encontrado");
+                return;
+            }
             selectedNotification.setNotificationStatusEnum(NotificationStatusEnum.INFO);
             notificationClientService.updateNotification(selectedNotification);
             updateList();
